@@ -124,6 +124,10 @@ body {
   cursor: pointer;
 }
 
+.tool-nav a {
+  padding: 0.4rem 0.7rem;
+}
+
 .tool-nav a[aria-current="page"],
 .tool-nav a.is-current {
   background: var(--accent);
