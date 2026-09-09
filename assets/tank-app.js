@@ -61,6 +61,7 @@
 
   function formatDays(value) {
     if (value >= 10) return formatNumber(value, 0);
+    if (Math.abs(value - Math.round(value)) < 0.05) return formatNumber(Math.round(value), 0);
     return formatNumber(value, 1);
   }
 
