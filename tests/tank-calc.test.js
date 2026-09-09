@@ -220,6 +220,42 @@ test("switching to a fixed black tank lifts a cassette-sized value", function ()
   assert.strictEqual(calc.blackLitresForKind("cassette", 19), 19);
 });
 
+test("cassette and other tank sizes accept 20 and values starting with 2", function () {
+  assert.ok(calc.MAX_TANK_LITRES >= 500);
+  assert.strictEqual(calc.parseTankLitres("2", 18), 2);
+  assert.strictEqual(calc.parseTankLitres("20", 18), 20);
+  assert.strictEqual(calc.parseTankLitres(20, 18), 20);
+  assert.strictEqual(calc.parseTankLitres(200, 18), 200);
+  assert.strictEqual(calc.parseTankLitres("", 18), 0);
+  assert.strictEqual(calc.parseTankLitres(undefined, 18), 18);
+  assert.strictEqual(calc.parseTankLitres(900, 18), 500);
+
+  var cassette = calc.normalisePlan({ blackKind: "cassette", blackTankLitres: "20" });
+  assert.strictEqual(cassette.blackTankLitres, 20);
+
+  var typingTwo = calc.normalisePlan({ blackKind: "cassette", blackTankLitres: "2" });
+  assert.strictEqual(typingTwo.blackTankLitres, 2);
+
+  var sizes = calc.normalisePlan({
+    freshTankLitres: "200",
+    greyTankLitres: "25",
+    blackTankLitres: "20",
+  });
+  assert.strictEqual(sizes.freshTankLitres, 200);
+  assert.strictEqual(sizes.greyTankLitres, 25);
+  assert.strictEqual(sizes.blackTankLitres, 20);
+});
+
+test("partial litre strings do not snap to the cassette default", function () {
+  assert.strictEqual(calc.isPartialNumber(""), true);
+  assert.strictEqual(calc.isPartialNumber("2."), true);
+  assert.strictEqual(calc.isPartialNumber("2"), false);
+  assert.strictEqual(calc.isPartialNumber("20"), false);
+  assert.strictEqual(calc.normalisePlan({ blackTankLitres: "" }).blackTankLitres, 0);
+  assert.strictEqual(calc.normalisePlan({ freshTankLitres: "" }).freshTankLitres, 0);
+  assert.strictEqual(calc.normalisePlan({ greyTankLitres: "" }).greyTankLitres, 0);
+});
+
 test("clamps days, tank size, and percents", function () {
   var plan = calc.normalisePlan({
     tripDays: 0,

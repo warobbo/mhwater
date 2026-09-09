@@ -58,6 +58,23 @@
     return BLACK_KINDS[value] ? value : "cassette";
   }
 
+  function isPartialNumber(value) {
+    if (value == null) return false;
+    var s = String(value).trim();
+    return s === "" || s === "-" || s === "." || s === "-." || /^-?\d+\.$/.test(s);
+  }
+
+  function parseTankLitres(value, fallback) {
+    if (value == null) {
+      return clamp(toNumber(fallback, 0), 0, MAX_TANK_LITRES);
+    }
+    var s = String(value).trim();
+    if (s === "" || s === "-" || s === "." || s === "-.") {
+      return 0;
+    }
+    return clamp(toNumber(value, fallback), 0, MAX_TANK_LITRES);
+  }
+
   function blackLabel(kind) {
     return BLACK_KINDS[sanitiseBlackKind(kind)].label;
   }
@@ -91,17 +108,12 @@
     var source = raw && typeof raw === "object" ? raw : {};
     var water = waterUsage && typeof waterUsage === "object" ? waterUsage : {};
     var hasOwnTrip = source.tripDays != null && source.tripDays !== "";
-    var hasOwnFresh = source.freshTankLitres != null && source.freshTankLitres !== "";
 
     var blackKind = sanitiseBlackKind(source.blackKind);
     var defaultFresh =
       water.freshTankLitres != null && water.freshTankLitres !== ""
         ? water.freshTankLitres
         : 100;
-    var defaultBlack =
-      source.blackTankLitres != null && source.blackTankLitres !== ""
-        ? source.blackTankLitres
-        : defaultBlackLitres(blackKind);
 
     return {
       tripDays: clamp(
@@ -109,18 +121,13 @@
         MIN_TRIP_DAYS,
         MAX_TRIP_DAYS
       ),
-      freshTankLitres: clamp(
-        toNumber(hasOwnFresh ? source.freshTankLitres : defaultFresh, 100),
-        0,
-        MAX_TANK_LITRES
+      freshTankLitres: parseTankLitres(
+        source.freshTankLitres != null ? source.freshTankLitres : defaultFresh,
+        100
       ),
-      greyTankLitres: clamp(
-        toNumber(source.greyTankLitres, DEFAULT_GREY_LITRES),
-        0,
-        MAX_TANK_LITRES
-      ),
+      greyTankLitres: parseTankLitres(source.greyTankLitres, DEFAULT_GREY_LITRES),
       blackKind: blackKind,
-      blackTankLitres: clamp(toNumber(defaultBlack, defaultBlackLitres(blackKind)), 0, MAX_TANK_LITRES),
+      blackTankLitres: parseTankLitres(source.blackTankLitres, defaultBlackLitres(blackKind)),
       freshStartPercent: clamp(toNumber(source.freshStartPercent, 100), MIN_PERCENT, MAX_PERCENT),
       greyStartPercent: clamp(toNumber(source.greyStartPercent, 0), MIN_PERCENT, MAX_PERCENT),
       blackStartPercent: clamp(toNumber(source.blackStartPercent, 0), MIN_PERCENT, MAX_PERCENT),
@@ -225,6 +232,8 @@
     toNumber: toNumber,
     clamp: clamp,
     sanitiseBlackKind: sanitiseBlackKind,
+    isPartialNumber: isPartialNumber,
+    parseTankLitres: parseTankLitres,
     blackLabel: blackLabel,
     defaultBlackLitres: defaultBlackLitres,
     blackLitresForKind: blackLitresForKind,
