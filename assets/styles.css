@@ -292,6 +292,14 @@ body {
   gap: 0.7rem;
 }
 
+.ah-grid.tank-days .total-card:last-child {
+  grid-column: 1 / -1;
+}
+
+.from-water .next-tool-link {
+  margin-top: 0.7rem;
+}
+
 .panel {
   padding: 1rem;
 }
@@ -567,6 +575,12 @@ input:focus-visible {
   color: var(--muted);
 }
 
+.faq-list a,
+.help-card a:not(.add-btn) {
+  color: var(--accent);
+  font-weight: 650;
+}
+
 .print-only {
   display: none;
 }
@@ -691,6 +705,10 @@ input:focus-visible {
   .ah-grid {
     grid-template-columns: 1fr;
   }
+
+  .ah-grid.tank-days {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (max-height: 699px) {
@@ -706,6 +724,15 @@ input:focus-visible {
 
   .ah-grid {
     display: contents;
+  }
+
+  .totals:has(.tank-days) {
+    grid-template-columns: 1fr;
+  }
+
+  .ah-grid.tank-days {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 
   .total-card {
@@ -777,6 +804,10 @@ input:focus-visible {
   .totals,
   .ah-grid {
     grid-template-columns: 1fr;
+  }
+
+  .ah-grid.tank-days .total-card:last-child {
+    grid-column: auto;
   }
 }
 

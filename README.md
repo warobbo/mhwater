@@ -35,11 +35,25 @@ UK bottle picker follows Calor leisure sizes: **butane** 4.5 / 7 / 15 kg (defaul
 
 Planning rates are documented in `assets/gas-calc.js` (heater, hob, 3-way fridge, boiler). They are typical leisure-vehicle figures, not a safety certificate.
 
+## Slice 3 — Holding tank fill / empty planner
+
+Uses the **daily fresh and grey figures from Water**, plus tank sizes, to show:
+
+- days until **fresh runs dry**
+- days until **grey is full**
+- days until the **cassette or black tank** needs emptying
+- which tank **ends the stretch first**
+- how many extra **fills / empties** a trip of X days would need
+
+Optional starting levels (how full each tank is now). Fresh tank size is shared with the Water page.
+
+Presets: Weekend wild (small tanks), Typical UK van, Family week, and Reset to defaults.
+
+Most UK leisure vans use a **cassette** of about 15–20 L. A fixed black tank is supported too.
+
 ## Later modules (nav stubs only)
 
 Primary nav: **Water** | **Gas** | **Tanks**
-
-Tanks still says **soon**.
 
 Under **More tools**:
 
@@ -68,6 +82,12 @@ The site is a static front-end: no backend, no accounts, and no APIs. It is mean
 2. Edit days, cooking, heating, and whether the fridge or hot water run on gas.
 3. Pick a bottle size. See kilograms, days the bottle lasts, and bottles to take.
 
+**Tanks**
+
+1. Set habits on Water first (or keep those defaults).
+2. Open Tanks. Pick a preset, or type your fresh, grey and cassette sizes.
+3. See which tank ends a wild-camping stretch first, and how many fills or empties an X-day trip needs.
+
 Numbers are a **planning estimate only**.
 
 On a phone, hold the screen upright. A sideways phone shows a rotate message instead of a landscape layout.
@@ -91,6 +111,7 @@ To check the maths:
 ```bash
 node tests/calc.test.js
 node tests/gas-calc.test.js
+node tests/tank-calc.test.js
 ```
 
 ## Deploy on Render (static site)
@@ -115,7 +136,7 @@ All Water Tools slices share one browser profile:
 | **localStorage key** | `watertools.systemProfile` |
 | **Current version** | `1` |
 
-Water usage reads and writes `waterUsage`. Gas usage reads and writes `gasUsage` on the **same object**. Later slices should add sibling keys instead of creating new localStorage keys. Bump `version` only if a breaking migration is required. The loader already preserves unknown sibling keys.
+Water usage reads and writes `waterUsage`. Gas usage reads and writes `gasUsage` on the **same object**. The tank planner reads and writes `tankPlan` on the **same object**. Later slices should add sibling keys instead of creating new localStorage keys. Bump `version` only if a breaking migration is required. The loader already preserves unknown sibling keys.
 
 ```json
 {
@@ -157,13 +178,24 @@ Water usage reads and writes `waterUsage`. Gas usage reads and writes `gasUsage`
     "bottleId": "butane7",
     "bottleKg": 7,
     "activePreset": "defaults"
+  },
+  "tankPlan": {
+    "tripDays": 2,
+    "freshTankLitres": 100,
+    "greyTankLitres": 90,
+    "blackKind": "cassette",
+    "blackTankLitres": 18,
+    "freshStartPercent": 100,
+    "greyStartPercent": 0,
+    "blackStartPercent": 0,
+    "activePreset": "defaults"
   }
 }
 ```
 
 ## Out of scope (this slice)
 
-Full tank planner, cassette empty planner, a standalone bottle shopper, hot-water comparison, winterising, Aquaroll planner, accounts, and affiliates.
+Cassette empty planner, a standalone bottle shopper, hot-water comparison, winterising, Aquaroll planner, accounts, and affiliates.
 
 ## Disclaimer
 
