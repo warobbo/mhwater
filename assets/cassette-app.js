@@ -56,7 +56,8 @@
 
   function formatLitres(value) {
     if (value >= 100) return formatNumber(value, 0);
-    return formatNumber(value, 1);
+    if (value >= 1) return formatNumber(value, 1);
+    return formatNumber(value, 2);
   }
 
   function formatDays(value) {
