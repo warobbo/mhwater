@@ -112,6 +112,7 @@ To check the maths:
 node tests/calc.test.js
 node tests/gas-calc.test.js
 node tests/tank-calc.test.js
+node tests/ui.test.js
 ```
 
 ## Deploy on Render (static site)
