@@ -51,14 +51,27 @@ Presets: Weekend wild (small tanks), Typical UK van, Family week, and Reset to d
 
 Most UK leisure vans use a **cassette** of about 15–20 L. A fixed black tank is supported too.
 
+## Slice 4 — Cassette / toilet empty planner
+
+A phone-first page for **empty stops only** (not a full fresh/grey planner — that stays on Tanks).
+
+Set people, trip length, cassette or fixed black tank size, flushes and start fill to see:
+
+- **days until an empty** is needed (from the current fill)
+- litres of waste **per day** and **for the trip**
+- how many **empties** that trip needs (including one at the end)
+
+Presets: Weekend couple, Family week, Solo wild camp, and Reset to defaults.
+
+People, days and flush litres **start from the Water page** if you have already used it. Cassette size and start fill start from Tanks if those are saved. After that, Cassette keeps its own numbers.
+
 ## Later modules (nav stubs only)
 
-Primary nav: **Water** | **Gas** | **Tanks**
+Primary nav: **Water** | **Gas** | **Tanks** | **Cassette**
 
 Under **More tools**:
 
 - Water weight — already on the Water page
-- Cassette / toilet empty planner
 - Gas bottle / cylinder picker (a later, fuller picker — simple sizes are on the Gas page)
 - Hot water (gas vs electric)
 - Winterising volume
@@ -88,6 +101,12 @@ The site is a static front-end: no backend, no accounts, and no APIs. It is mean
 2. Open Tanks. Pick a preset, or type your fresh, grey and cassette sizes.
 3. See which tank ends a wild-camping stretch first, and how many fills or empties an X-day trip needs.
 
+**Cassette**
+
+1. Open Cassette (top menu). Pick a preset, or keep the defaults.
+2. Set people, days, cassette or black-tank size, and flush habits.
+3. See days until empty, litres of waste, and how many empties the trip needs.
+
 Numbers are a **planning estimate only**.
 
 On a phone, hold the screen upright. A sideways phone shows a rotate message instead of a landscape layout.
@@ -112,6 +131,7 @@ To check the maths:
 node tests/calc.test.js
 node tests/gas-calc.test.js
 node tests/tank-calc.test.js
+node tests/cassette-calc.test.js
 node tests/ui.test.js
 ```
 
@@ -137,7 +157,7 @@ All Water Tools slices share one browser profile:
 | **localStorage key** | `watertools.systemProfile` |
 | **Current version** | `1` |
 
-Water usage reads and writes `waterUsage`. Gas usage reads and writes `gasUsage` on the **same object**. The tank planner reads and writes `tankPlan` on the **same object**. Later slices should add sibling keys instead of creating new localStorage keys. Bump `version` only if a breaking migration is required. The loader already preserves unknown sibling keys.
+Water usage reads and writes `waterUsage`. Gas usage reads and writes `gasUsage` on the **same object**. The tank planner reads and writes `tankPlan` on the **same object**. The cassette empty planner reads and writes `cassettePlan` on the **same object**. Later slices should add sibling keys instead of creating new localStorage keys. Bump `version` only if a breaking migration is required. The loader already preserves unknown sibling keys.
 
 ```json
 {
@@ -190,13 +210,24 @@ Water usage reads and writes `waterUsage`. Gas usage reads and writes `gasUsage`
     "greyStartPercent": 0,
     "blackStartPercent": 0,
     "activePreset": "defaults"
+  },
+  "cassettePlan": {
+    "adults": 2,
+    "children": 0,
+    "tripDays": 2,
+    "blackKind": "cassette",
+    "blackTankLitres": 18,
+    "flushesPerPersonPerDay": 5,
+    "litresPerFlush": 0.25,
+    "startPercent": 0,
+    "activePreset": "defaults"
   }
 }
 ```
 
 ## Out of scope (this slice)
 
-Cassette empty planner, a standalone bottle shopper, hot-water comparison, winterising, Aquaroll planner, accounts, and affiliates.
+A standalone bottle shopper, hot-water comparison, winterising, Aquaroll planner, accounts, and affiliates.
 
 ## Disclaimer
 

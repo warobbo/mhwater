@@ -4,6 +4,7 @@
  * `waterUsage` rather than creating new keys.
  * Gas usage lives on `gasUsage` (same object, same key).
  * Holding-tank plan lives on `tankPlan` (same object, same key).
+ * Cassette empty plan lives on `cassettePlan` (same object, same key).
  */
 (function (root, factory) {
   if (typeof module === "object" && module.exports) {
@@ -11,6 +12,8 @@
     var gasDefaults;
     var tankCalc;
     var tankDefaults;
+    var cassetteCalc;
+    var cassetteDefaults;
     try {
       gasCalc = require("./gas-calc.js");
       gasDefaults = require("./gas-defaults.js");
@@ -25,13 +28,22 @@
       tankCalc = null;
       tankDefaults = null;
     }
+    try {
+      cassetteCalc = require("./cassette-calc.js");
+      cassetteDefaults = require("./cassette-defaults.js");
+    } catch (err) {
+      cassetteCalc = null;
+      cassetteDefaults = null;
+    }
     module.exports = factory(
       require("./calc.js"),
       require("./defaults.js"),
       gasCalc,
       gasDefaults,
       tankCalc,
-      tankDefaults
+      tankDefaults,
+      cassetteCalc,
+      cassetteDefaults
     );
   } else {
     root.WaterStorage = factory(
@@ -40,7 +52,9 @@
       root.GasCalc,
       root.GasDefaults,
       root.TankCalc,
-      root.TankDefaults
+      root.TankDefaults,
+      root.CassetteCalc,
+      root.CassetteDefaults
     );
   }
 })(typeof self !== "undefined" ? self : this, function (
@@ -49,7 +63,9 @@
   GasCalc,
   GasDefaults,
   TankCalc,
-  TankDefaults
+  TankDefaults,
+  CassetteCalc,
+  CassetteDefaults
 ) {
   "use strict";
 
@@ -66,6 +82,10 @@
 
   function sanitiseTankActivePreset(value) {
     return TankDefaults && value && TankDefaults.PRESETS[value] ? value : "";
+  }
+
+  function sanitiseCassetteActivePreset(value) {
+    return CassetteDefaults && value && CassetteDefaults.PRESETS[value] ? value : "";
   }
 
   function sanitiseWaterUsage(raw) {
@@ -100,6 +120,19 @@
     return next;
   }
 
+  function sanitiseCassettePlan(raw, waterUsage, tankPlan) {
+    if (!CassetteCalc) {
+      return raw && typeof raw === "object" ? raw : undefined;
+    }
+    var source = raw;
+    if (!source || typeof source !== "object") {
+      source = CassetteDefaults ? CassetteDefaults.createDefaultPlan(waterUsage, tankPlan) : {};
+    }
+    var next = CassetteCalc.normalisePlan(source, waterUsage, tankPlan);
+    next.activePreset = sanitiseCassetteActivePreset(source && source.activePreset);
+    return next;
+  }
+
   function sanitiseProfile(raw) {
     var waterUsage = sanitiseWaterUsage(raw && raw.waterUsage);
     var profile = {
@@ -115,11 +148,20 @@
       profile.tankPlan = sanitiseTankPlan(raw && raw.tankPlan, waterUsage);
     }
 
+    if (CassetteCalc) {
+      profile.cassettePlan = sanitiseCassettePlan(
+        raw && raw.cassettePlan,
+        waterUsage,
+        profile.tankPlan
+      );
+    }
+
     if (raw && typeof raw === "object") {
       Object.keys(raw).forEach(function (key) {
         if (key === "version" || key === "waterUsage") return;
         if (key === "gasUsage" && GasCalc) return;
         if (key === "tankPlan" && TankCalc) return;
+        if (key === "cassettePlan" && CassetteCalc) return;
         profile[key] = raw[key];
       });
     }
@@ -193,6 +235,21 @@
     return next;
   }
 
+  function applyCassettePreset(profile, presetId) {
+    if (!CassetteCalc || !CassetteDefaults) return profile;
+    var preset = CassetteDefaults.PRESETS[presetId];
+    if (!preset) return profile;
+
+    var next = sanitiseProfile(profile);
+    var plan =
+      presetId === "defaults"
+        ? CassetteDefaults.createDefaultPlan(next.waterUsage, next.tankPlan)
+        : preset.usage;
+    next.cassettePlan = sanitiseCassettePlan(plan, next.waterUsage, next.tankPlan);
+    next.cassettePlan.activePreset = presetId;
+    return next;
+  }
+
   return {
     STORAGE_KEY: STORAGE_KEY,
     PROFILE_VERSION: PROFILE_VERSION,
@@ -202,8 +259,10 @@
     sanitiseWaterUsage: sanitiseWaterUsage,
     sanitiseGasUsage: sanitiseGasUsage,
     sanitiseTankPlan: sanitiseTankPlan,
+    sanitiseCassettePlan: sanitiseCassettePlan,
     applyPreset: applyPreset,
     applyGasPreset: applyGasPreset,
     applyTankPreset: applyTankPreset,
+    applyCassettePreset: applyCassettePreset,
   };
 });
