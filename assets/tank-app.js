@@ -46,6 +46,9 @@
     "blackStartPercent",
   ];
 
+  var TANK_SIZE_FIELD_IDS = ["freshTankLitres", "greyTankLitres", "blackTankLitres"];
+  var tankSizeInputs = null;
+
   function formatNumber(value, digits) {
     return new Intl.NumberFormat("en-GB", {
       maximumFractionDigits: digits,
@@ -136,6 +139,7 @@
       el.checked = !!value;
       return;
     }
+    if (tankSizeInputs && tankSizeInputs.isEditing(el)) return;
     el.value = value;
   }
 
@@ -400,12 +404,22 @@
     profile.waterUsage = waterCalc.normaliseUsage(profile.waterUsage);
   }
 
-  function updateFromForm() {
+  function readTankLitres(id, live) {
+    var el = document.getElementById(id);
+    var raw = el ? el.value : "";
+    if (live && window.WaterUI) {
+      return window.WaterUI.parseLiveNumber(raw, profile.tankPlan[id]);
+    }
+    return raw;
+  }
+
+  function updateFromForm(options) {
+    var liveTankSizes = options && options.liveTankSizes;
     var plan = profile.tankPlan;
     plan.tripDays = document.getElementById("tripDays").value;
-    plan.freshTankLitres = document.getElementById("freshTankLitres").value;
-    plan.greyTankLitres = document.getElementById("greyTankLitres").value;
-    plan.blackTankLitres = document.getElementById("blackTankLitres").value;
+    plan.freshTankLitres = readTankLitres("freshTankLitres", liveTankSizes);
+    plan.greyTankLitres = readTankLitres("greyTankLitres", liveTankSizes);
+    plan.blackTankLitres = readTankLitres("blackTankLitres", liveTankSizes);
     plan.freshStartPercent = document.getElementById("freshStartPercent").value;
     plan.greyStartPercent = document.getElementById("greyStartPercent").value;
     plan.blackStartPercent = document.getElementById("blackStartPercent").value;
@@ -414,7 +428,24 @@
     syncFreshToWater();
   }
 
-  function onFormInput() {
+  function onFormInput(event) {
+    if (tankSizeInputs && tankSizeInputs.isBound(event.target)) return;
+    updateFromForm();
+    persist();
+    render();
+  }
+
+  function onTankSizeLive() {
+    updateFromForm({ liveTankSizes: true });
+    persist();
+    renderTotals();
+    syncPresetSelection();
+  }
+
+  function onTankSizeCommit(el) {
+    if (el && window.WaterUI && window.WaterUI.isPartialNumberInput(el.value)) {
+      el.value = profile.tankPlan[el.id];
+    }
     updateFromForm();
     persist();
     render();
@@ -450,6 +481,12 @@
   }
 
   if (els.form) {
+    tankSizeInputs = window.WaterUI
+      ? window.WaterUI.bindCommitOnBlurNumbers(els.form, TANK_SIZE_FIELD_IDS, {
+          onLive: onTankSizeLive,
+          onCommit: onTankSizeCommit,
+        })
+      : null;
     els.form.addEventListener("input", onFormInput);
     els.form.addEventListener("change", onFormInput);
   }

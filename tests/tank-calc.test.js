@@ -220,6 +220,28 @@ test("switching to a fixed black tank lifts a cassette-sized value", function ()
   assert.strictEqual(calc.blackLitresForKind("cassette", 19), 19);
 });
 
+test("sanitise keeps tank sizes that do not start with the default digit", function () {
+  var cassettePlan = calc.normalisePlan({
+    freshTankLitres: 80,
+    greyTankLitres: 65,
+    blackKind: "cassette",
+    blackTankLitres: 20,
+  });
+  assert.strictEqual(cassettePlan.freshTankLitres, 80);
+  assert.strictEqual(cassettePlan.greyTankLitres, 65);
+  assert.strictEqual(cassettePlan.blackKind, "cassette");
+  assert.strictEqual(cassettePlan.blackTankLitres, 20);
+
+  var fixedPlan = calc.normalisePlan({
+    greyTankLitres: 100,
+    blackKind: "fixed",
+    blackTankLitres: 50,
+  });
+  assert.strictEqual(fixedPlan.greyTankLitres, 100);
+  assert.strictEqual(fixedPlan.blackKind, "fixed");
+  assert.strictEqual(fixedPlan.blackTankLitres, 50);
+});
+
 test("clamps days, tank size, and percents", function () {
   var plan = calc.normalisePlan({
     tripDays: 0,
