@@ -3,11 +3,14 @@
  * Later slices should reuse STORAGE_KEY and add sibling keys beside
  * `waterUsage` rather than creating new keys.
  * Gas usage lives on `gasUsage` (same object, same key).
+ * Holding-tank plan lives on `tankPlan` (same object, same key).
  */
 (function (root, factory) {
   if (typeof module === "object" && module.exports) {
     var gasCalc;
     var gasDefaults;
+    var tankCalc;
+    var tankDefaults;
     try {
       gasCalc = require("./gas-calc.js");
       gasDefaults = require("./gas-defaults.js");
@@ -15,25 +18,38 @@
       gasCalc = null;
       gasDefaults = null;
     }
+    try {
+      tankCalc = require("./tank-calc.js");
+      tankDefaults = require("./tank-defaults.js");
+    } catch (err) {
+      tankCalc = null;
+      tankDefaults = null;
+    }
     module.exports = factory(
       require("./calc.js"),
       require("./defaults.js"),
       gasCalc,
-      gasDefaults
+      gasDefaults,
+      tankCalc,
+      tankDefaults
     );
   } else {
     root.WaterStorage = factory(
       root.WaterCalc,
       root.WaterDefaults,
       root.GasCalc,
-      root.GasDefaults
+      root.GasDefaults,
+      root.TankCalc,
+      root.TankDefaults
     );
   }
 })(typeof self !== "undefined" ? self : this, function (
   WaterCalc,
   WaterDefaults,
   GasCalc,
-  GasDefaults
+  GasDefaults,
+  TankCalc,
+  TankDefaults
 ) {
   "use strict";
 
@@ -46,6 +62,10 @@
 
   function sanitiseGasActivePreset(value) {
     return GasDefaults && value && GasDefaults.PRESETS[value] ? value : "";
+  }
+
+  function sanitiseTankActivePreset(value) {
+    return TankDefaults && value && TankDefaults.PRESETS[value] ? value : "";
   }
 
   function sanitiseWaterUsage(raw) {
@@ -67,6 +87,19 @@
     return next;
   }
 
+  function sanitiseTankPlan(raw, waterUsage) {
+    if (!TankCalc) {
+      return raw && typeof raw === "object" ? raw : undefined;
+    }
+    var source = raw;
+    if (!source || typeof source !== "object") {
+      source = TankDefaults ? TankDefaults.createDefaultPlan(waterUsage) : {};
+    }
+    var next = TankCalc.normalisePlan(source, waterUsage);
+    next.activePreset = sanitiseTankActivePreset(source && source.activePreset);
+    return next;
+  }
+
   function sanitiseProfile(raw) {
     var waterUsage = sanitiseWaterUsage(raw && raw.waterUsage);
     var profile = {
@@ -78,10 +111,15 @@
       profile.gasUsage = sanitiseGasUsage(raw && raw.gasUsage, waterUsage);
     }
 
+    if (TankCalc) {
+      profile.tankPlan = sanitiseTankPlan(raw && raw.tankPlan, waterUsage);
+    }
+
     if (raw && typeof raw === "object") {
       Object.keys(raw).forEach(function (key) {
         if (key === "version" || key === "waterUsage") return;
         if (key === "gasUsage" && GasCalc) return;
+        if (key === "tankPlan" && TankCalc) return;
         profile[key] = raw[key];
       });
     }
@@ -134,6 +172,23 @@
     return next;
   }
 
+  function applyTankPreset(profile, presetId) {
+    if (!TankCalc || !TankDefaults) return profile;
+    var preset = TankDefaults.PRESETS[presetId];
+    if (!preset) return profile;
+
+    var next = sanitiseProfile(profile);
+    var plan =
+      presetId === "defaults"
+        ? TankDefaults.createDefaultPlan(next.waterUsage)
+        : preset.usage;
+    next.tankPlan = sanitiseTankPlan(plan, next.waterUsage);
+    next.tankPlan.activePreset = presetId;
+    next.waterUsage.freshTankLitres = next.tankPlan.freshTankLitres;
+    next.waterUsage = sanitiseWaterUsage(next.waterUsage);
+    return next;
+  }
+
   return {
     STORAGE_KEY: STORAGE_KEY,
     PROFILE_VERSION: PROFILE_VERSION,
@@ -142,7 +197,9 @@
     sanitiseProfile: sanitiseProfile,
     sanitiseWaterUsage: sanitiseWaterUsage,
     sanitiseGasUsage: sanitiseGasUsage,
+    sanitiseTankPlan: sanitiseTankPlan,
     applyPreset: applyPreset,
     applyGasPreset: applyGasPreset,
+    applyTankPreset: applyTankPreset,
   };
 });
