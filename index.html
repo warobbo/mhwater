@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Motorhome Water Usage Calculator | Litres per day &amp; trip | UK &amp; EU</title>
+    <meta name="description" content="Work out motorhome and campervan fresh water use in litres, plus grey water and water weight. Free UK/EU planning estimate from people, showers and trip length.">
+    <meta name="robots" content="index,follow">
+    <meta name="author" content="Wayne Robinson">
+    <meta property="og:title" content="Motorhome Water Usage Calculator | Litres per day and trip">
+    <meta property="og:description" content="Pick people, trip length and habits to see fresh and grey water in litres for UK and EU motorhomes and campervans.">
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#1e5f74">
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <!-- ASSET_VERSION=20260909a — bump this query on CSS/JS below to force-refresh cached assets. -->
+    <link rel="stylesheet" href="assets/styles.css?v=20260909a">
+  </head>
+  <body>
+    <a class="skip-link no-print" href="#calculator">Skip to calculator</a>
+    <header class="site-header">
+      <p class="eyebrow no-print">Water Tools</p>
+      <nav class="tool-nav no-print" aria-label="Main tools">
+        <a href="index.html" aria-current="page">Water</a>
+        <a href="gas.html">Gas <span class="soon">soon</span></a>
+        <a href="tanks.html">Tanks <span class="soon">soon</span></a>
+      </nav>
+      <details class="more-tools no-print">
+        <summary>More tools</summary>
+        <ul class="more-tools-list">
+          <li><a href="#weight">Water weight</a> <span class="now">on this page</span></li>
+          <li><a href="cassette.html">Cassette / toilet empty planner</a> <span class="soon">soon</span></li>
+          <li><a href="bottles.html">Gas bottle / cylinder picker</a> <span class="soon">soon</span></li>
+          <li><a href="hotwater.html">Hot water (gas vs electric)</a> <span class="soon">soon</span></li>
+          <li><a href="winterising.html">Winterising volume</a> <span class="soon">soon</span></li>
+          <li><a href="topup.html">Top-up / Aquaroll planner</a> <span class="soon">soon</span></li>
+        </ul>
+      </details>
+      <h1>Fresh water usage calculator</h1>
+      <p class="lede no-print">
+        For UK and EU motorhome and campervan trips. Set people, days and habits,
+        then see litres per day, litres for the whole trip, grey water, and roughly
+        how heavy that water is.
+      </p>
+      <p class="print-only print-meta">Planning estimate · fresh and grey water in litres</p>
+    </header>
+
+    <main id="calculator" class="site-main">
+      <div class="layout">
+        <div class="summary-stack">
+          <div class="totals-wrap">
+            <section class="totals" aria-live="polite">
+              <article class="total-card primary" id="weight">
+                <p class="label">Whole trip</p>
+                <p class="value"><strong id="total-trip">0</strong><span>L</span></p>
+                <p class="hint" id="weight-note">About 0 kg if you carry the whole trip’s fresh water (1 litre = 1 kg).</p>
+              </article>
+              <div class="ah-grid">
+                <article class="total-card">
+                  <p class="label">Each day</p>
+                  <p class="value"><strong id="total-daily">0</strong><span>L / day</span></p>
+                  <p class="hint">Fresh water used</p>
+                </article>
+                <article class="total-card">
+                  <p class="label">Grey water</p>
+                  <p class="value"><strong id="grey-trip">0</strong><span>L trip</span></p>
+                  <p class="hint"><span id="grey-daily">0</span> L / day</p>
+                </article>
+              </div>
+            </section>
+          </div>
+
+          <section class="breakdown panel" aria-labelledby="breakdown-title">
+            <h2 id="breakdown-title">Breakdown by activity</h2>
+            <p class="field-hint" id="grey-note">Grey water is roughly the shower, washing up and laundry.</p>
+            <p class="field-hint" id="tank-note" hidden></p>
+            <ol id="breakdown-list"></ol>
+          </section>
+        </div>
+
+        <div class="controls">
+          <section class="panel no-print" aria-labelledby="preset-title">
+            <div class="panel-head">
+              <div>
+                <h2 id="preset-title">Start from a preset</h2>
+                <p class="save-state" id="save-state">Saved on this device</p>
+              </div>
+              <button type="button" class="print-btn" id="print-sheet">Print / save PDF</button>
+            </div>
+            <div id="presets" class="preset-row" role="group" aria-label="Usage presets"></div>
+          </section>
+
+          <form id="usage-form" class="panel habits-panel no-print" aria-labelledby="habits-title">
+            <h2 id="habits-title">People and trip</h2>
+            <p class="lede tight">Children count as a bit less water than adults for showers and drinking. Washing up is for the whole van.</p>
+            <div class="field-grid">
+              <label class="field" for="adults">
+                <span>Adults</span>
+                <span class="field-control">
+                  <input id="adults" type="number" inputmode="numeric" min="0" max="20" step="1" value="2">
+                  <em>people</em>
+                </span>
+              </label>
+              <label class="field" for="children">
+                <span>Children <span class="sr-only">(optional)</span></span>
+                <span class="field-control">
+                  <input id="children" type="number" inputmode="numeric" min="0" max="20" step="1" value="0">
+                  <em>people</em>
+                </span>
+              </label>
+              <label class="field" for="tripDays">
+                <span>Trip length</span>
+                <span class="field-control">
+                  <input id="tripDays" type="number" inputmode="decimal" min="0.5" max="90" step="0.5" value="2">
+                  <em>days</em>
+                </span>
+              </label>
+              <label class="field" for="freshTankLitres">
+                <span>Fresh tank size (optional)</span>
+                <span class="field-control">
+                  <input id="freshTankLitres" type="number" inputmode="decimal" min="0" max="500" step="5" value="100">
+                  <em>L</em>
+                </span>
+              </label>
+            </div>
+            <p class="field-hint">Leave tank size at 0 if you do not know it. A typical small van is 80–100 L; many coachbuilt motorhomes are 100–150 L.</p>
+
+            <h2 class="field-heading">Showers</h2>
+            <p class="field-hint">0.5 means one shower every other day. A typical motorhome shower is about 4 litres a minute.</p>
+            <div class="field-grid">
+              <label class="field" for="showersPerPersonPerDay">
+                <span>Showers per person per day</span>
+                <span class="field-control">
+                  <input id="showersPerPersonPerDay" type="number" inputmode="decimal" min="0" max="5" step="0.1" value="0.5">
+                  <em>/ day</em>
+                </span>
+              </label>
+              <div class="field">
+                <span>Shower length</span>
+                <div id="shower-styles" class="choice-row" role="group" aria-label="Shower length">
+                  <button type="button" data-shower="short" aria-pressed="false">Short</button>
+                  <button type="button" data-shower="normal" aria-pressed="false">Normal</button>
+                  <button type="button" data-shower="long" aria-pressed="false">Long</button>
+                </div>
+              </div>
+              <label class="field" for="showerMinutes">
+                <span>Minutes per shower</span>
+                <span class="field-control">
+                  <input id="showerMinutes" type="number" inputmode="decimal" min="0" max="20" step="0.5" value="1.5">
+                  <em>min</em>
+                </span>
+              </label>
+              <label class="field" for="showerLitres">
+                <span>Litres per shower</span>
+                <span class="field-control">
+                  <input id="showerLitres" type="number" inputmode="decimal" min="0" max="80" step="0.5" value="6">
+                  <em>L</em>
+                </span>
+              </label>
+            </div>
+
+            <h2 class="field-heading">Kitchen</h2>
+            <div class="field-grid">
+              <label class="field" for="washUpLitresPerDay">
+                <span>Washing up</span>
+                <span class="field-control">
+                  <input id="washUpLitresPerDay" type="number" inputmode="decimal" min="0" max="80" step="0.5" value="5">
+                  <em>L / day</em>
+                </span>
+              </label>
+              <label class="field" for="drinkCookLitresPerPersonPerDay">
+                <span>Drinking and cooking</span>
+                <span class="field-control">
+                  <input id="drinkCookLitresPerPersonPerDay" type="number" inputmode="decimal" min="0" max="20" step="0.5" value="2.5">
+                  <em>L / person</em>
+                </span>
+              </label>
+            </div>
+            <label class="loss-toggle">
+              <input id="laundryEnabled" type="checkbox">
+              <span>
+                <strong>Include laundry</strong>
+                <span>Optional. A hand-wash or compact load is often about 15 L.</span>
+              </span>
+            </label>
+            <div id="laundry-fields" class="field-grid" hidden>
+              <label class="field" for="laundryLoadsPerTrip">
+                <span>Loads this trip</span>
+                <span class="field-control">
+                  <input id="laundryLoadsPerTrip" type="number" inputmode="decimal" min="0" max="30" step="0.5" value="0">
+                  <em>loads</em>
+                </span>
+              </label>
+              <label class="field" for="laundryLitresPerLoad">
+                <span>Litres per load</span>
+                <span class="field-control">
+                  <input id="laundryLitresPerLoad" type="number" inputmode="decimal" min="0" max="80" step="1" value="15">
+                  <em>L</em>
+                </span>
+              </label>
+            </div>
+
+            <h2 class="field-heading">Cassette toilet</h2>
+            <label class="loss-toggle">
+              <input id="cassetteEnabled" type="checkbox" checked>
+              <span>
+                <strong>Include cassette flushes</strong>
+                <span>These use a little fresh water and go in the cassette, not the grey tank.</span>
+              </span>
+            </label>
+            <div id="cassette-fields" class="field-grid">
+              <label class="field" for="cassetteFlushesPerPersonPerDay">
+                <span>Flushes per person per day</span>
+                <span class="field-control">
+                  <input id="cassetteFlushesPerPersonPerDay" type="number" inputmode="decimal" min="0" max="20" step="1" value="5">
+                  <em>/ day</em>
+                </span>
+              </label>
+              <label class="field" for="cassetteLitresPerFlush">
+                <span>Litres per flush</span>
+                <span class="field-control">
+                  <input id="cassetteLitresPerFlush" type="number" inputmode="decimal" min="0" max="5" step="0.05" value="0.25">
+                  <em>L</em>
+                </span>
+              </label>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <section class="help-grid no-print" aria-labelledby="help-title">
+        <article class="help-card">
+          <h2 id="help-title">How to use</h2>
+          <ol>
+            <li>Choose a preset if you want a head start, or keep the defaults.</li>
+            <li>Set adults, optional children, and how many days you are away.</li>
+            <li>Edit showers, washing up, and drinking. Tick laundry or cassette only if you use them.</li>
+            <li>Totals update as you type. Refresh the page: your numbers stay on this device.</li>
+          </ol>
+        </article>
+      </section>
+
+      <section class="help-card faq-card no-print" aria-labelledby="faq-title">
+        <h2 id="faq-title">FAQ</h2>
+        <dl class="faq-list">
+          <div>
+            <dt>How much fresh water do two people use per day in a motorhome?</dt>
+            <dd>
+              There is no single number. A careful weekend for two is often 15–25 litres a day.
+              A family week with daily showers can be 50–80 litres a day. Use the totals above
+              for your own habits rather than a rule of thumb.
+            </dd>
+          </div>
+          <div>
+            <dt>How much water does a motorhome shower use?</dt>
+            <dd>
+              A short “navy” shower is often about 6 litres (roughly 1½ minutes). A normal wash
+              is about 12 litres. A long shower can be 20 litres or more. Motorhome showers are
+              usually around 4 litres a minute — much less than a house shower.
+            </dd>
+          </div>
+          <div>
+            <dt>What is grey water, and how much should I plan for?</dt>
+            <dd>
+              Grey water is what goes down the shower and sink. It is most of your fresh water
+              minus drinking. Cassette flushes go in the toilet cassette (black waste), not the
+              grey tank. Many vans fill the grey tank almost as fast as they empty the fresh one.
+            </dd>
+          </div>
+          <div>
+            <dt>How long will my fresh tank last?</dt>
+            <dd>
+              Type your tank size in litres. The note under the breakdown then says roughly how
+              many days that tank lasts at your daily use. It is a teaser only — a later Tanks
+              tool will plan fresh, grey and black together.
+            </dd>
+          </div>
+          <div>
+            <dt>How much does the water weigh?</dt>
+            <dd>
+              One litre of water is about 1 kg. The trip total in litres is therefore about the
+              same number in kilograms if you carry it all at once. A full 100 L tank is about
+              100 kg — that comes off your payload.
+            </dd>
+          </div>
+          <div>
+            <dt>Do cassette toilet flushes use much water?</dt>
+            <dd>
+              Usually not. A typical cassette flush is about 0.2–0.3 litres. Five flushes each
+              for two people is around 2.5 litres a day. It still comes from the fresh tank, so
+              it is in the total, but it does not fill the grey tank.
+            </dd>
+          </div>
+          <div>
+            <dt>Should I include laundry?</dt>
+            <dd>
+              Only if you will wash clothes on board. A basin or compact load is often about
+              15 litres. Many weekend trips skip it and use a campsite machine or wait until home.
+            </dd>
+          </div>
+          <div>
+            <dt>Is this calculator accurate enough for trip planning?</dt>
+            <dd>
+              It is a planning estimate, not a guarantee. Real use changes with leaky taps, longer
+              showers, site showers, and how you wash up. Use it to compare habits and leave a
+              margin, especially if you are wild camping.
+            </dd>
+          </div>
+          <div>
+            <dt>Can I drink the water from the fresh tank?</dt>
+            <dd>
+              Only if you treat the tank as drinking water: clean it, use a filter if you need one,
+              and follow the tank and filler maker’s advice. Many people keep a separate bottle
+              for drinking and use the tank for washing. This tool does not tell you the water is safe.
+            </dd>
+          </div>
+          <div>
+            <dt>What is coming next?</dt>
+            <dd>
+              Gas / LPG usage and a holding-tank planner (fresh, grey and black days) are next.
+              Later tools include a cassette empty planner, gas bottle picker, hot water
+              (gas vs electric), winterising volume, and an Aquaroll / top-up planner.
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <aside class="disclaimer" aria-label="Disclaimer">
+        <h2>Disclaimer</h2>
+        <p>
+          This calculator is a planning estimate only. It is not a design, a payload calculation,
+          or a guarantee that your tanks will last. Check your van’s tank sizes and weight limits,
+          and dispose of grey and cassette waste at proper points.
+        </p>
+      </aside>
+
+      <section class="help-card next-tool no-print" aria-labelledby="next-tool-title">
+        <h2 id="next-tool-title">Next: gas and tanks</h2>
+        <p>
+          Your water figures stay on this device. Gas / LPG usage and a holding-tank planner
+          are coming next. Other tools (cassette empties, bottles, hot water, winterising,
+          Aquaroll top-ups) will follow on the same hub.
+        </p>
+        <a class="add-btn next-tool-link" href="gas.html">Gas / LPG — coming soon</a>
+        <a class="add-btn next-tool-link" href="tanks.html">Holding tanks — coming soon</a>
+      </section>
+    </main>
+
+    <footer class="site-footer no-print">
+      <p>Water Tools for Wayne Robinson. Water usage now; gas, tanks and more to follow. No accounts and no server-side data. Later home: motorhomewater.co.uk.</p>
+    </footer>
+
+    <div
+      class="rotate-gate no-print"
+      id="rotate-gate"
+      role="alertdialog"
+      aria-modal="true"
+      aria-hidden="true"
+      aria-labelledby="rotate-gate-title"
+      aria-describedby="rotate-gate-text"
+    >
+      <div class="rotate-gate-card">
+        <svg class="rotate-gate-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+          <rect x="18" y="8" width="28" height="48" rx="5" fill="none" stroke="currentColor" stroke-width="3"></rect>
+          <circle cx="32" cy="48" r="2.2" fill="currentColor"></circle>
+          <path d="M50 28a18 18 0 0 1-28 15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path>
+          <path d="M46 22v8h8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <h2 id="rotate-gate-title" tabindex="-1">Turn your phone upright</h2>
+        <p id="rotate-gate-text">This calculator is made for portrait. Rotate your phone back to keep using it.</p>
+      </div>
+    </div>
+
+    <script src="assets/calc.js?v=20260909a"></script>
+    <script src="assets/defaults.js?v=20260909a"></script>
+    <script src="assets/storage.js?v=20260909a"></script>
+    <script src="assets/ui.js?v=20260909a"></script>
+    <script src="assets/app.js?v=20260909a"></script>
+  </body>
+</html>
