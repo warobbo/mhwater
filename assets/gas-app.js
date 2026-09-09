@@ -354,12 +354,12 @@
   }
 
   function applySeason(seasonId) {
-    var season = calc.SEASONS[seasonId];
-    if (!season) return;
-    profile.gasUsage.season = season.id;
-    profile.gasUsage.heatingLevel = season.heatingLevel;
-    profile.gasUsage.heatingHours = calc.HEATING_LEVELS[season.heatingLevel].hours;
-    profile.gasUsage = calc.normaliseUsage(profile.gasUsage, profile.waterUsage);
+    if (!calc.SEASONS[seasonId]) return;
+    profile.gasUsage = calc.applySeasonToUsage(
+      profile.gasUsage,
+      seasonId,
+      profile.waterUsage
+    );
     profile.gasUsage.activePreset = "";
     persist();
     render();
