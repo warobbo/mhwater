@@ -374,6 +374,10 @@ body {
   min-width: 1.4rem;
 }
 
+.field-control em.unit-wide {
+  min-width: 3.4rem;
+}
+
 .loss-toggle {
   display: flex;
   align-items: flex-start;

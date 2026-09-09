@@ -4,6 +4,8 @@ A small, mobile-friendly hub of **motorhome water and gas calculators** for UK a
 
 Later public home: **motorhomewater.co.uk** (water and gas together).
 
+Live (after deploy): [mhwater.onrender.com](https://mhwater.onrender.com)
+
 ## Slice 1 — Water usage
 
 Set people, trip length and habits to see:
@@ -16,15 +18,34 @@ Set people, trip length and habits to see:
 
 Presets: Weekend (2 people), Family week, Light full-time, and Reset to defaults.
 
+## Slice 2 — Gas / LPG usage
+
+Set trip length, cooking, heating and a UK bottle size to see:
+
+- **kilograms of LPG / gas** for the trip and per day (butane by default, or propane)
+- how many **days a bottle lasts**
+- how many **bottles** to take (rounded up)
+- a breakdown by cooking, heating, fridge-on-gas, and optional hot water
+
+Presets: Weekend summer, Winter week, Full-time light, and Reset to defaults.
+
+Trip days and people **start from the Water page** if you have already used it. After that, Gas keeps its own numbers.
+
+UK bottle picker follows Calor leisure sizes: **butane** 4.5 / 7 / 15 kg (default) and **propane** 3.9 / 6 / 13 kg. You can type another size. Winter week uses propane; the other presets stay on butane.
+
+Planning rates are documented in `assets/gas-calc.js` (heater, hob, 3-way fridge, boiler). They are typical leisure-vehicle figures, not a safety certificate.
+
 ## Later modules (nav stubs only)
 
 Primary nav: **Water** | **Gas** | **Tanks**
+
+Tanks still says **soon**.
 
 Under **More tools**:
 
 - Water weight — already on the Water page
 - Cassette / toilet empty planner
-- Gas bottle / cylinder picker
+- Gas bottle / cylinder picker (a later, fuller picker — simple sizes are on the Gas page)
 - Hot water (gas vs electric)
 - Winterising volume
 - Top-up / Aquaroll planner
@@ -35,10 +56,17 @@ The site is a static front-end: no backend, no accounts, and no APIs. It is mean
 
 ## How to use
 
+**Water**
+
 1. Open Water usage and pick a preset, or keep the defaults.
 2. Edit people, days, showers and kitchen habits.
 3. Totals update as you type. Refresh: the numbers stay on this device.
-4. Optional: type a fresh tank size to see a rough days-left note and the weight of a full tank.
+
+**Gas**
+
+1. Open Gas (top menu). Pick a preset, or keep the defaults.
+2. Edit days, cooking, heating, and whether the fridge or hot water run on gas.
+3. Pick a bottle size. See kilograms, days the bottle lasts, and bottles to take.
 
 Numbers are a **planning estimate only**.
 
@@ -58,10 +86,11 @@ Then open [http://127.0.0.1:8080/](http://127.0.0.1:8080/).
 
 You can also open the HTML files directly in a browser. A local server is the more reliable option.
 
-To check the water maths:
+To check the maths:
 
 ```bash
 node tests/calc.test.js
+node tests/gas-calc.test.js
 ```
 
 ## Deploy on Render (static site)
@@ -86,7 +115,7 @@ All Water Tools slices share one browser profile:
 | **localStorage key** | `watertools.systemProfile` |
 | **Current version** | `1` |
 
-Water usage reads and writes `waterUsage`. Later slices should add sibling keys on the **same object** instead of creating new localStorage keys. Bump `version` only if a breaking migration is required. The loader already preserves unknown sibling keys.
+Water usage reads and writes `waterUsage`. Gas usage reads and writes `gasUsage` on the **same object**. Later slices should add sibling keys instead of creating new localStorage keys. Bump `version` only if a breaking migration is required. The loader already preserves unknown sibling keys.
 
 ```json
 {
@@ -109,14 +138,33 @@ Water usage reads and writes `waterUsage`. Later slices should add sibling keys 
     "cassetteLitresPerFlush": 0.25,
     "freshTankLitres": 100,
     "activePreset": "defaults"
+  },
+  "gasUsage": {
+    "adults": 2,
+    "children": 0,
+    "tripDays": 2,
+    "season": "summer",
+    "mealsPerDay": 2,
+    "cookingStyle": "normal",
+    "heatingLevel": "off",
+    "heatingHours": 0,
+    "fridgeGasEnabled": false,
+    "fridgeHoursPerDay": 24,
+    "boilerEnabled": false,
+    "boilerLevel": "normal",
+    "boilerHours": 1.5,
+    "gasType": "butane",
+    "bottleId": "butane7",
+    "bottleKg": 7,
+    "activePreset": "defaults"
   }
 }
 ```
 
 ## Out of scope (this slice)
 
-Full LPG calculator, full tank planner, cassette empty planner, bottle picker, hot-water comparison, winterising, Aquaroll planner, accounts, and affiliates.
+Full tank planner, cassette empty planner, a standalone bottle shopper, hot-water comparison, winterising, Aquaroll planner, accounts, and affiliates.
 
 ## Disclaimer
 
-This calculator is a planning estimate only. It is not a design, a payload calculation, or a guarantee that your tanks will last. Check your van’s tank sizes and weight limits, and dispose of grey and cassette waste at proper points.
+These calculators are a planning estimate only. They are not a design, a payload calculation, a safety certificate, or a guarantee that tanks or bottles will last. Use gas only with ventilation. Have gas work done by a qualified fitter. Check your van’s tank sizes, bottle fittings and weight limits, and dispose of grey and cassette waste at proper points.
