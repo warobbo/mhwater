@@ -46,6 +46,8 @@
     "blackStartPercent",
   ];
 
+  var SIZE_FIELD_IDS = ["freshTankLitres", "greyTankLitres", "blackTankLitres"];
+
   function formatNumber(value, digits) {
     return new Intl.NumberFormat("en-GB", {
       maximumFractionDigits: digits,
@@ -127,6 +129,10 @@
       );
     }).join("");
     syncPresetSelection();
+  }
+
+  function isSizeField(id) {
+    return SIZE_FIELD_IDS.indexOf(id) !== -1;
   }
 
   function setFieldValue(id, value) {
@@ -389,8 +395,9 @@
       .join("");
   }
 
-  function render() {
-    syncForm();
+  function render(options) {
+    var skipForm = options && options.skipForm;
+    if (!skipForm) syncForm();
     renderTotals();
     syncPresetSelection();
   }
@@ -414,10 +421,17 @@
     syncFreshToWater();
   }
 
-  function onFormInput() {
+  function commitForm() {
     updateFromForm();
     persist();
     render();
+  }
+
+  function onFormInput(event) {
+    var field = event.target && event.target.id;
+    updateFromForm();
+    persist();
+    render({ skipForm: isSizeField(field) });
   }
 
   function applyPreset(presetId) {
@@ -451,7 +465,7 @@
 
   if (els.form) {
     els.form.addEventListener("input", onFormInput);
-    els.form.addEventListener("change", onFormInput);
+    els.form.addEventListener("change", commitForm);
   }
 
   if (els.presets) {
