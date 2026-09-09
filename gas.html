@@ -4,16 +4,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Motorhome Gas / LPG Usage Calculator | kg and bottle days | UK</title>
-    <meta name="description" content="Estimate motorhome propane and LPG use in kilograms for heating, cooking, fridge and hot water. See how long a 6 kg or 13 kg UK bottle lasts.">
+    <meta name="description" content="Estimate motorhome LPG use in kilograms for heating, cooking, fridge and hot water. Butane or propane, with UK Calor bottle sizes.">
     <meta name="robots" content="index,follow">
     <meta name="author" content="Wayne Robinson">
     <meta property="og:title" content="Motorhome Gas / LPG Usage Calculator | kg and bottle days">
-    <meta property="og:description" content="Pick trip length, cooking, heating and a UK bottle size to see kilograms of gas and how many days a bottle lasts.">
+    <meta property="og:description" content="Pick butane or propane, trip length and a UK Calor bottle size to see kilograms of gas and how many days a bottle lasts.">
     <meta property="og:type" content="website">
     <meta name="theme-color" content="#1e5f74">
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-    <!-- ASSET_VERSION=20260909b — bump this query on CSS/JS below to force-refresh cached assets. -->
-    <link rel="stylesheet" href="assets/styles.css?v=20260909b">
+    <!-- ASSET_VERSION=20260909c — bump this query on CSS/JS below to force-refresh cached assets. -->
+    <link rel="stylesheet" href="assets/styles.css?v=20260909c">
   </head>
   <body>
     <a class="skip-link no-print" href="#calculator">Skip to calculator</a>
@@ -37,11 +37,12 @@
       </details>
       <h1>Gas / LPG usage calculator</h1>
       <p class="lede no-print">
-        For UK motorhome and campervan trips on propane or LPG. Set days, cooking,
-        heating and a bottle size, then see kilograms for the trip, kilograms per day,
-        and how long that bottle lasts.
+        For UK motorhome and campervan trips. Set days, cooking, heating and a
+        bottle size, then see kilograms of gas for the trip, kilograms per day,
+        and how long that bottle lasts. Butane is the usual UK leisure choice;
+        propane is better when it is freezing.
       </p>
-      <p class="print-only print-meta">Planning estimate · propane / LPG in kilograms</p>
+      <p class="print-only print-meta">Planning estimate · LPG / gas in kilograms</p>
     </header>
 
     <main id="calculator" class="site-main">
@@ -62,7 +63,7 @@
                 </article>
                 <article class="total-card">
                   <p class="label">Bottles for the trip</p>
-                  <p class="value"><strong id="bottles-needed">0</strong><span>bottles</span></p>
+                  <p class="value"><strong id="bottles-needed">0</strong><span id="bottles-unit">bottles</span></p>
                   <p class="hint" id="bottles-hint">Rounded up.</p>
                 </article>
               </div>
@@ -213,7 +214,14 @@
             </div>
 
             <h2 class="field-heading">Bottle size</h2>
-            <p class="field-hint">UK bottles are sold by the kilograms of gas inside, not the empty metal weight. 6 kg and 13 kg are the usual Calor / Flogas sizes. 11 kg and 14 kg are common refillable (Gaslow, Alugas, Conti-style) bottles.</p>
+            <p class="field-hint">Butane (blue bottles) is the usual UK leisure gas in mild weather. Propane (red bottles) keeps working better in the cold and frost. The sizes below are Calor leisure bottles. The number is the gas inside, not the empty metal weight.</p>
+            <div class="field">
+              <span>Which gas</span>
+              <div id="gas-types" class="choice-row" role="group" aria-label="Gas type">
+                <button type="button" data-gas="butane" aria-pressed="false">Butane</button>
+                <button type="button" data-gas="propane" aria-pressed="false">Propane</button>
+              </div>
+            </div>
             <div class="field">
               <span>Common UK sizes</span>
               <div id="bottles" class="preset-row" role="group" aria-label="Bottle size"></div>
@@ -222,7 +230,7 @@
               <label class="field" for="bottleKg">
                 <span>Gas in the bottle</span>
                 <span class="field-control">
-                  <input id="bottleKg" type="number" inputmode="decimal" min="1" max="47" step="0.1" value="13">
+                  <input id="bottleKg" type="number" inputmode="decimal" min="1" max="47" step="0.1" value="7">
                   <em>kg</em>
                 </span>
               </label>
@@ -238,7 +246,7 @@
             <li>Choose a preset if you want a head start, or keep the defaults.</li>
             <li>Set people and how many days you are away.</li>
             <li>Edit cooking, heating, and whether the fridge or hot water run on gas.</li>
-            <li>Pick a bottle size. Totals update as you type. Refresh the page: your numbers stay on this device.</li>
+            <li>Choose butane or propane, then a bottle size. Totals update as you type. Refresh the page: your numbers stay on this device.</li>
           </ol>
         </article>
       </section>
@@ -247,20 +255,29 @@
         <h2 id="faq-title">FAQ</h2>
         <dl class="faq-list">
           <div>
+            <dt>Why butane rather than propane in the UK?</dt>
+            <dd>
+              Most UK leisure trips are in mild weather, so <strong>butane</strong> (blue Calor bottles)
+              is the usual choice. <strong>Propane</strong> (red bottles) is better when it is cold or
+              freezing — butane does not vaporise well in a hard frost. This page defaults to butane
+              and lets you switch. The Winter week preset uses propane.
+            </dd>
+          </div>
+          <div>
             <dt>What bottle sizes do UK motorhomes use?</dt>
             <dd>
-              The common exchange bottles are <strong>6 kg</strong> and <strong>13 kg</strong> Calor or Flogas
-              propane. Larger vans sometimes carry <strong>19 kg</strong>. Refillable systems (Gaslow, Alugas
-              and similar Conti-style bottles) are often <strong>11 kg</strong> or <strong>14 kg</strong>.
-              The number is the gas inside, not the weight of the empty cylinder.
+              Calor leisure <strong>butane</strong> bottles are <strong>4.5 kg</strong>, <strong>7 kg</strong>
+              and <strong>15 kg</strong>. Calor leisure <strong>propane</strong> bottles are
+              <strong>3.9 kg</strong>, <strong>6 kg</strong> and <strong>13 kg</strong>. The number is
+              the gas inside, not the weight of the empty cylinder. Type another size if yours is different.
             </dd>
           </div>
           <div>
             <dt>Why does winter use so much more gas than summer?</dt>
             <dd>
               Space heating. A blown-air heater can use around 0.2 kg an hour. Twelve hours a day
-              is more than 2 kg, every day. Summer is often just cooking — a 6 kg bottle can then
-              last weeks. Use the Winter week and Weekend summer presets to see the gap.
+              is more than 2 kg, every day. Summer is often just cooking — a 4.5 kg or 7 kg butane
+              bottle can then last weeks. Use the Winter week and Weekend summer presets to see the gap.
             </dd>
           </div>
           <div>
@@ -273,20 +290,20 @@
             </dd>
           </div>
           <div>
-            <dt>How long does a 13 kg bottle last?</dt>
+            <dt>How long does a 7 kg or 13 kg bottle last?</dt>
             <dd>
               It depends on heating. Cooking-only for two people might be 0.1–0.2 kg a day,
-              so a 13 kg bottle can last a couple of months. A winter week with the heater
-              on is often 2–3 kg a day, so the same bottle may last around 4–7 days.
+              so a 7 kg butane bottle can last a month or more. A winter week with the heater
+              on is often 2–3 kg a day, so a 13 kg propane bottle may last around 4–7 days.
               The “Bottle lasts” figure above is for your numbers, not a rule of thumb.
             </dd>
           </div>
           <div>
-            <dt>What about refillable or Conti bottles?</dt>
+            <dt>What if my bottle is a different size?</dt>
             <dd>
-              Pick 11 kg or 14 kg, or type the kilograms of gas your bottle holds.
-              Refillable bottles are still measured by the gas inside. This page does not
-              tell you where to fill, or whether Autogas is available on your route.
+              Type the kilograms of gas your bottle holds. Refillable bottles (Gaslow, Alugas
+              and similar) are still measured by the gas inside. This page does not tell you
+              where to fill, or whether Autogas is available on your route.
             </dd>
           </div>
           <div>
@@ -309,10 +326,10 @@
           <div>
             <dt>Is this accurate enough for shopping?</dt>
             <dd>
-              It is good enough to decide between a 6 kg and a 13 kg, or whether to take a
-              spare in winter. Real use changes with how cold it is, how well the van is
-              insulated, and how long the heater runs. Leave a margin, especially off-grid
-              in winter.
+              It is good enough to decide between a 4.5 kg and a 7 kg, or a 13 kg in winter,
+              and whether to take a spare. Real use changes with how cold it is, how well
+              the van is insulated, and how long the heater runs. Leave a margin, especially
+              off-grid in winter.
             </dd>
           </div>
         </dl>
@@ -364,12 +381,12 @@
       </div>
     </div>
 
-    <script src="assets/calc.js?v=20260909b"></script>
-    <script src="assets/gas-calc.js?v=20260909b"></script>
-    <script src="assets/defaults.js?v=20260909b"></script>
-    <script src="assets/gas-defaults.js?v=20260909b"></script>
-    <script src="assets/storage.js?v=20260909b"></script>
-    <script src="assets/ui.js?v=20260909b"></script>
-    <script src="assets/gas-app.js?v=20260909b"></script>
+    <script src="assets/calc.js?v=20260909c"></script>
+    <script src="assets/gas-calc.js?v=20260909c"></script>
+    <script src="assets/defaults.js?v=20260909c"></script>
+    <script src="assets/gas-defaults.js?v=20260909c"></script>
+    <script src="assets/storage.js?v=20260909c"></script>
+    <script src="assets/ui.js?v=20260909c"></script>
+    <script src="assets/gas-app.js?v=20260909c"></script>
   </body>
 </html>

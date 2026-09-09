@@ -1,11 +1,19 @@
 /**
- * Pure motorhome LPG / propane maths.
+ * Pure motorhome LPG / gas maths (butane or propane).
  * Works in the browser and in Node tests.
  *
- * Rates are typical UK leisure-vehicle planning figures on propane
- * (Calor / Flogas / refillable). They are not manufacturer ratings
- * and are not a safety certificate. Users should edit hours to match
- * their van.
+ * Rates are typical UK leisure-vehicle planning figures in kilograms
+ * of LPG. The same kg rates are used for butane and propane — this is
+ * a shopping estimate, not an energy-density model. They are not
+ * manufacturer ratings and are not a safety certificate.
+ *
+ * Bottle sizes follow Calor UK leisure bottles:
+ *   Butane (blue, default): 4.5 kg, 7 kg, 15 kg
+ *   Propane (red):          3.9 kg, 6 kg, 13 kg
+ *
+ * Butane is the usual UK leisure choice in mild weather. Propane is
+ * the better winter / freezing choice (butane struggles when it is
+ * very cold).
  *
  *   Heater  0.18 kg/h   blown-air / Truma-style space heater on a
  *                       moderate setting (2–3 kW heaters are often
@@ -69,15 +77,37 @@
     winter: { id: "winter", label: "Winter", heatingLevel: "high" },
   };
 
-  var BOTTLES = {
-    calor6: { id: "calor6", kg: 6, label: "6 kg", sublabel: "Calor / Flogas" },
-    calor13: { id: "calor13", kg: 13, label: "13 kg", sublabel: "Calor / Flogas" },
-    calor19: { id: "calor19", kg: 19, label: "19 kg", sublabel: "larger Calor" },
-    refill11: { id: "refill11", kg: 11, label: "11 kg", sublabel: "refillable / Gaslow" },
-    refill14: { id: "refill14", kg: 14, label: "14 kg", sublabel: "Alugas / Conti-style" },
+  var GAS_TYPES = {
+    butane: { id: "butane", label: "Butane", hint: "blue · usual UK leisure" },
+    propane: { id: "propane", label: "Propane", hint: "red · better in the cold" },
   };
 
-  var BOTTLE_ORDER = ["calor6", "calor13", "calor19", "refill11", "refill14"];
+  var BOTTLES = {
+    butane45: { id: "butane45", gasType: "butane", kg: 4.5, label: "4.5 kg", sublabel: "Calor butane" },
+    butane7: { id: "butane7", gasType: "butane", kg: 7, label: "7 kg", sublabel: "Calor butane" },
+    butane15: { id: "butane15", gasType: "butane", kg: 15, label: "15 kg", sublabel: "Calor butane" },
+    propane39: { id: "propane39", gasType: "propane", kg: 3.9, label: "3.9 kg", sublabel: "Calor propane" },
+    propane6: { id: "propane6", gasType: "propane", kg: 6, label: "6 kg", sublabel: "Calor propane" },
+    propane13: { id: "propane13", gasType: "propane", kg: 13, label: "13 kg", sublabel: "Calor propane" },
+  };
+
+  var BOTTLE_ORDER = {
+    butane: ["butane45", "butane7", "butane15"],
+    propane: ["propane39", "propane6", "propane13"],
+  };
+
+  var DEFAULT_BOTTLE_ID = {
+    butane: "butane7",
+    propane: "propane13",
+  };
+
+  var LEGACY_BOTTLES = {
+    calor6: { gasType: "propane", bottleId: "propane6" },
+    calor13: { gasType: "propane", bottleId: "propane13" },
+    calor19: { gasType: "propane", bottleId: "custom", bottleKg: 19 },
+    refill11: { gasType: "propane", bottleId: "custom", bottleKg: 11 },
+    refill14: { gasType: "propane", bottleId: "custom", bottleKg: 14 },
+  };
 
   function toNumber(value, fallback) {
     var n = typeof value === "number" ? value : parseFloat(value);
@@ -114,9 +144,38 @@
     return SEASONS[value] ? value : "summer";
   }
 
-  function sanitiseBottleId(value) {
+  function sanitiseGasType(value) {
+    return GAS_TYPES[value] ? value : "butane";
+  }
+
+  function bottlesForGas(gasType) {
+    var type = sanitiseGasType(gasType);
+    return BOTTLE_ORDER[type].map(function (id) {
+      return BOTTLES[id];
+    });
+  }
+
+  function closestBottleId(kg, gasType) {
+    var type = sanitiseGasType(gasType);
+    var ids = BOTTLE_ORDER[type];
+    var best = DEFAULT_BOTTLE_ID[type];
+    var bestDelta = Infinity;
+    for (var i = 0; i < ids.length; i += 1) {
+      var delta = Math.abs(BOTTLES[ids[i]].kg - kg);
+      if (delta < bestDelta) {
+        best = ids[i];
+        bestDelta = delta;
+      }
+    }
+    return best;
+  }
+
+  function sanitiseBottleId(value, gasType) {
+    var type = sanitiseGasType(gasType);
     if (value === "custom") return "custom";
-    return BOTTLES[value] ? value : "calor13";
+    if (BOTTLES[value] && BOTTLES[value].gasType === type) return value;
+    if (BOTTLES[value]) return closestBottleId(BOTTLES[value].kg, type);
+    return DEFAULT_BOTTLE_ID[type];
   }
 
   function matchHeatingLevel(hours) {
@@ -137,11 +196,11 @@
     return "custom";
   }
 
-  function matchBottleId(kg) {
-    var ids = Object.keys(BOTTLES);
+  function matchBottleId(kg, gasType) {
+    var type = sanitiseGasType(gasType);
+    var ids = BOTTLE_ORDER[type];
     for (var i = 0; i < ids.length; i += 1) {
-      var bottle = BOTTLES[ids[i]];
-      if (Math.abs(bottle.kg - kg) < 0.05) return bottle.id;
+      if (Math.abs(BOTTLES[ids[i]].kg - kg) < 0.05) return ids[i];
     }
     return "custom";
   }
@@ -187,8 +246,19 @@
       boilerHours = BOILER_LEVELS[boilerLevel].hours;
     }
 
-    var bottleId = sanitiseBottleId(source.bottleId);
-    var bottleKg = clamp(toNumber(source.bottleKg, 13), MIN_BOTTLE_KG, MAX_BOTTLE_KG);
+    var legacy = LEGACY_BOTTLES[source.bottleId];
+    var gasType = sanitiseGasType(
+      source.gasType || (legacy && !source.gasType ? legacy.gasType : "butane")
+    );
+    var rawBottleId = source.bottleId;
+    var rawBottleKg = source.bottleKg;
+    if (legacy && !source.gasType) {
+      rawBottleId = legacy.bottleId;
+      if (rawBottleKg == null && legacy.bottleKg != null) rawBottleKg = legacy.bottleKg;
+    }
+    var bottleId = sanitiseBottleId(rawBottleId, gasType);
+    var defaultKg = BOTTLES[DEFAULT_BOTTLE_ID[gasType]].kg;
+    var bottleKg = clamp(toNumber(rawBottleKg, defaultKg), MIN_BOTTLE_KG, MAX_BOTTLE_KG);
     if (bottleId !== "custom" && BOTTLES[bottleId]) {
       bottleKg = BOTTLES[bottleId].kg;
     }
@@ -213,6 +283,7 @@
       boilerEnabled: !!source.boilerEnabled,
       boilerLevel: boilerLevel,
       boilerHours: boilerHours,
+      gasType: gasType,
       bottleId: bottleId,
       bottleKg: bottleKg,
       activePreset: source.activePreset ? String(source.activePreset) : "",
@@ -290,8 +361,10 @@
     HEATING_LEVELS: HEATING_LEVELS,
     BOILER_LEVELS: BOILER_LEVELS,
     SEASONS: SEASONS,
+    GAS_TYPES: GAS_TYPES,
     BOTTLES: BOTTLES,
     BOTTLE_ORDER: BOTTLE_ORDER,
+    DEFAULT_BOTTLE_ID: DEFAULT_BOTTLE_ID,
     toNumber: toNumber,
     clamp: clamp,
     peopleUnits: peopleUnits,
@@ -299,7 +372,10 @@
     sanitiseHeatingLevel: sanitiseHeatingLevel,
     sanitiseBoilerLevel: sanitiseBoilerLevel,
     sanitiseSeason: sanitiseSeason,
+    sanitiseGasType: sanitiseGasType,
     sanitiseBottleId: sanitiseBottleId,
+    bottlesForGas: bottlesForGas,
+    closestBottleId: closestBottleId,
     matchHeatingLevel: matchHeatingLevel,
     matchBoilerLevel: matchBoilerLevel,
     matchBottleId: matchBottleId,

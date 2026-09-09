@@ -33,9 +33,12 @@ test("UK rates are the documented planning figures", function () {
   almostEqual(calc.COOK_STYLES.light.kgPerPersonPerMeal, 0.025);
   almostEqual(calc.COOK_STYLES.normal.kgPerPersonPerMeal, 0.04);
   almostEqual(calc.COOK_STYLES.heavy.kgPerPersonPerMeal, 0.07);
-  assert.strictEqual(calc.BOTTLES.calor6.kg, 6);
-  assert.strictEqual(calc.BOTTLES.calor13.kg, 13);
-  assert.strictEqual(calc.BOTTLES.refill11.kg, 11);
+  assert.strictEqual(calc.BOTTLES.butane45.kg, 4.5);
+  assert.strictEqual(calc.BOTTLES.butane7.kg, 7);
+  assert.strictEqual(calc.BOTTLES.butane15.kg, 15);
+  assert.strictEqual(calc.BOTTLES.propane39.kg, 3.9);
+  assert.strictEqual(calc.BOTTLES.propane6.kg, 6);
+  assert.strictEqual(calc.BOTTLES.propane13.kg, 13);
 });
 
 test("weekend summer is cooking only for two people", function () {
@@ -47,8 +50,9 @@ test("weekend summer is cooking only for two people", function () {
   almostEqual(result.boilerDaily, 0);
   almostEqual(result.dailyKg, cookDaily);
   almostEqual(result.tripKg, cookDaily * 2);
-  assert.strictEqual(result.usage.bottleKg, 6);
-  almostEqual(result.bottleDays, 6 / cookDaily);
+  assert.strictEqual(result.usage.gasType, "butane");
+  assert.strictEqual(result.usage.bottleKg, 4.5);
+  almostEqual(result.bottleDays, 4.5 / cookDaily);
   assert.strictEqual(result.bottlesNeeded, 1);
 });
 
@@ -67,6 +71,7 @@ test("winter week uses far more gas than weekend summer", function () {
   almostEqual(winter.tripKg, winter.dailyKg * 7);
   assert.ok(winter.dailyKg > 2);
   assert.ok(winter.dailyKg > summer.dailyKg * 10);
+  assert.strictEqual(winter.usage.gasType, "propane");
   assert.strictEqual(winter.usage.bottleKg, 13);
   almostEqual(winter.bottleDays, 13 / winter.dailyKg);
   assert.strictEqual(winter.bottlesNeeded, Math.ceil(winter.tripKg / 13 - 1e-9));
@@ -113,7 +118,8 @@ test("bottles needed rounds up", function () {
     heatingHours: 8,
     fridgeGasEnabled: false,
     boilerEnabled: false,
-    bottleId: "calor13",
+    gasType: "propane",
+    bottleId: "propane13",
     bottleKg: 13,
   });
   almostEqual(result.dailyKg, 8 * 0.18);
@@ -130,7 +136,8 @@ test("missing gas usage inherits trip days and people from water", function () {
   assert.strictEqual(usage.adults, 3);
   assert.strictEqual(usage.children, 1);
   assert.strictEqual(usage.tripDays, 9);
-  assert.strictEqual(usage.bottleKg, 13);
+  assert.strictEqual(usage.gasType, "butane");
+  assert.strictEqual(usage.bottleKg, 7);
 });
 
 test("own gas trip days are not overwritten by water", function () {
@@ -199,6 +206,39 @@ test("defaults gas preset inherits water trip days", function () {
   assert.strictEqual(profile.gasUsage.adults, 2);
   assert.strictEqual(profile.gasUsage.children, 2);
   assert.strictEqual(profile.gasUsage.activePreset, "defaults");
+});
+
+test("defaults to butane and Calor butane sizes", function () {
+  var usage = calc.normaliseUsage({});
+  assert.strictEqual(usage.gasType, "butane");
+  assert.strictEqual(usage.bottleId, "butane7");
+  assert.deepStrictEqual(
+    calc.bottlesForGas("butane").map(function (b) {
+      return b.kg;
+    }),
+    [4.5, 7, 15]
+  );
+  assert.deepStrictEqual(
+    calc.bottlesForGas("propane").map(function (b) {
+      return b.kg;
+    }),
+    [3.9, 6, 13]
+  );
+});
+
+test("switching gas type picks the closest Calor size", function () {
+  assert.strictEqual(calc.closestBottleId(7, "propane"), "propane6");
+  assert.strictEqual(calc.closestBottleId(4.5, "propane"), "propane39");
+  assert.strictEqual(calc.closestBottleId(15, "propane"), "propane13");
+  assert.strictEqual(calc.closestBottleId(13, "butane"), "butane15");
+  assert.strictEqual(calc.closestBottleId(6, "butane"), "butane7");
+});
+
+test("legacy propane bottle ids still load", function () {
+  var usage = calc.normaliseUsage({ bottleId: "calor13" });
+  assert.strictEqual(usage.gasType, "propane");
+  assert.strictEqual(usage.bottleId, "propane13");
+  assert.strictEqual(usage.bottleKg, 13);
 });
 
 test("storage key stays watertools.systemProfile", function () {

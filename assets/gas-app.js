@@ -18,6 +18,7 @@
     bottleDays: document.getElementById("bottle-days"),
     bottleHint: document.getElementById("bottle-hint"),
     bottlesNeeded: document.getElementById("bottles-needed"),
+    bottlesUnit: document.getElementById("bottles-unit"),
     bottlesHint: document.getElementById("bottles-hint"),
     saveState: document.getElementById("save-state"),
     presets: document.getElementById("presets"),
@@ -29,6 +30,7 @@
     cookingStyles: document.getElementById("cooking-styles"),
     heatingLevels: document.getElementById("heating-levels"),
     boilerLevels: document.getElementById("boiler-levels"),
+    gasTypes: document.getElementById("gas-types"),
     bottles: document.getElementById("bottles"),
   };
 
@@ -119,25 +121,27 @@
 
   function renderBottleButtons() {
     if (!els.bottles) return;
-    var buttons = calc.BOTTLE_ORDER.map(function (id) {
-      var bottle = calc.BOTTLES[id];
-      var fullLabel = bottle.label + " " + bottle.sublabel;
-      return (
-        '<button type="button" data-bottle="' +
-        escapeHtml(id) +
-        '" aria-pressed="false" aria-label="' +
-        escapeHtml(fullLabel) +
-        '">' +
-        '<span class="preset-label">' +
-        escapeHtml(bottle.label) +
-        "</span>" +
-        '<span class="preset-sublabel">' +
-        escapeHtml(bottle.sublabel) +
-        "</span>" +
-        "</button>"
-      );
-    }).join("");
-    els.bottles.innerHTML = buttons;
+    var gasType = profile.gasUsage && profile.gasUsage.gasType;
+    var bottles = calc.bottlesForGas(gasType);
+    els.bottles.innerHTML = bottles
+      .map(function (bottle) {
+        var fullLabel = bottle.label + " " + bottle.sublabel;
+        return (
+          '<button type="button" data-bottle="' +
+          escapeHtml(bottle.id) +
+          '" aria-pressed="false" aria-label="' +
+          escapeHtml(fullLabel) +
+          '">' +
+          '<span class="preset-label">' +
+          escapeHtml(bottle.label) +
+          "</span>" +
+          '<span class="preset-sublabel">' +
+          escapeHtml(bottle.sublabel) +
+          "</span>" +
+          "</button>"
+        );
+      })
+      .join("");
   }
 
   function setFieldValue(id, value) {
@@ -174,6 +178,7 @@
     syncChoiceRow(els.cookingStyles, "data-cooking", usage.cookingStyle);
     syncChoiceRow(els.heatingLevels, "data-heating", usage.heatingLevel);
     syncChoiceRow(els.boilerLevels, "data-boiler", usage.boilerLevel);
+    syncChoiceRow(els.gasTypes, "data-gas", usage.gasType);
     syncChoiceRow(els.bottles, "data-bottle", usage.bottleId);
   }
 
@@ -196,6 +201,7 @@
       els.bottleDays.textContent = "—";
       els.bottleHint.textContent = "No gas used at these settings, so a bottle is not being emptied.";
       els.bottlesNeeded.textContent = "0";
+      if (els.bottlesUnit) els.bottlesUnit.textContent = "bottles";
       els.bottlesHint.textContent = "Nothing to buy for this trip.";
     } else {
       els.bottleDays.textContent = formatDays(result.bottleDays);
@@ -206,6 +212,9 @@
         formatDays(result.bottleDays) +
         " days at this daily use.";
       els.bottlesNeeded.textContent = String(result.bottlesNeeded);
+      if (els.bottlesUnit) {
+        els.bottlesUnit.textContent = result.bottlesNeeded === 1 ? "bottle" : "bottles";
+      }
       els.bottlesHint.textContent =
         result.bottlesNeeded === 1
           ? "One " + bottleLabel(usage) + " covers the trip (rounded up)."
@@ -254,6 +263,7 @@
   }
 
   function render() {
+    renderBottleButtons();
     syncForm();
     renderTotals();
     syncPresetSelection();
@@ -307,7 +317,12 @@
     if (field === "bottleKg") {
       profile.gasUsage.bottleKg = target.value;
       profile.gasUsage.bottleId = calc.matchBottleId(
-        calc.clamp(calc.toNumber(target.value, 13), calc.MIN_BOTTLE_KG, calc.MAX_BOTTLE_KG)
+        calc.clamp(
+          calc.toNumber(target.value, calc.BOTTLES[calc.DEFAULT_BOTTLE_ID.butane].kg),
+          calc.MIN_BOTTLE_KG,
+          calc.MAX_BOTTLE_KG
+        ),
+        profile.gasUsage.gasType
       );
       profile.gasUsage = calc.normaliseUsage(profile.gasUsage, profile.waterUsage);
       profile.gasUsage.activePreset = "";
@@ -382,9 +397,23 @@
     render();
   }
 
+  function applyGasType(typeId) {
+    var nextType = calc.sanitiseGasType(typeId);
+    var currentKg = calc.toNumber(profile.gasUsage.bottleKg, 7);
+    var nextBottleId = calc.closestBottleId(currentKg, nextType);
+    profile.gasUsage.gasType = nextType;
+    profile.gasUsage.bottleId = nextBottleId;
+    profile.gasUsage.bottleKg = calc.BOTTLES[nextBottleId].kg;
+    profile.gasUsage = calc.normaliseUsage(profile.gasUsage, profile.waterUsage);
+    profile.gasUsage.activePreset = "";
+    persist();
+    render();
+  }
+
   function applyBottle(bottleId) {
     var bottle = calc.BOTTLES[bottleId];
     if (!bottle) return;
+    profile.gasUsage.gasType = bottle.gasType;
     profile.gasUsage.bottleId = bottle.id;
     profile.gasUsage.bottleKg = bottle.kg;
     profile.gasUsage = calc.normaliseUsage(profile.gasUsage, profile.waterUsage);
@@ -438,6 +467,14 @@
     });
   }
 
+  if (els.gasTypes) {
+    els.gasTypes.addEventListener("click", function (event) {
+      var button = event.target.closest("[data-gas]");
+      if (!button) return;
+      applyGasType(button.getAttribute("data-gas"));
+    });
+  }
+
   if (els.bottles) {
     els.bottles.addEventListener("click", function (event) {
       var button = event.target.closest("[data-bottle]");
@@ -453,7 +490,6 @@
   }
 
   renderPresetButtons();
-  renderBottleButtons();
   render();
   persist();
   if (window.WaterUI) window.WaterUI.setupRotateGate();

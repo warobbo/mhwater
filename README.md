@@ -22,7 +22,7 @@ Presets: Weekend (2 people), Family week, Light full-time, and Reset to defaults
 
 Set trip length, cooking, heating and a UK bottle size to see:
 
-- **kilograms of propane / LPG** for the trip and per day
+- **kilograms of LPG / gas** for the trip and per day (butane by default, or propane)
 - how many **days a bottle lasts**
 - how many **bottles** to take (rounded up)
 - a breakdown by cooking, heating, fridge-on-gas, and optional hot water
@@ -31,7 +31,7 @@ Presets: Weekend summer, Winter week, Full-time light, and Reset to defaults.
 
 Trip days and people **start from the Water page** if you have already used it. After that, Gas keeps its own numbers.
 
-UK bottle picker: 6 kg / 13 kg / 19 kg Calor-style, plus 11 kg / 14 kg refillable (Gaslow / Alugas / Conti-style). You can type another size.
+UK bottle picker follows Calor leisure sizes: **butane** 4.5 / 7 / 15 kg (default) and **propane** 3.9 / 6 / 13 kg. You can type another size. Winter week uses propane; the other presets stay on butane.
 
 Planning rates are documented in `assets/gas-calc.js` (heater, hob, 3-way fridge, boiler). They are typical leisure-vehicle figures, not a safety certificate.
 
@@ -153,8 +153,9 @@ Water usage reads and writes `waterUsage`. Gas usage reads and writes `gasUsage`
     "boilerEnabled": false,
     "boilerLevel": "normal",
     "boilerHours": 1.5,
-    "bottleId": "calor13",
-    "bottleKg": 13,
+    "gasType": "butane",
+    "bottleId": "butane7",
+    "bottleKg": 7,
     "activePreset": "defaults"
   }
 }
