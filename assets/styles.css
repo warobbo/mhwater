@@ -338,7 +338,7 @@ body {
   gap: 0.75rem;
 }
 
-.field span,
+.field > span:not(.field-control),
 .field > .label-text {
   display: block;
   margin-bottom: 0.25rem;
@@ -453,6 +453,13 @@ body {
   background: var(--accent);
   color: #fff;
   border-color: var(--accent);
+}
+
+.preset-row button.is-selected span,
+.preset-row button[aria-pressed="true"] span,
+.choice-row button.is-selected span,
+.choice-row button[aria-pressed="true"] span {
+  color: inherit;
 }
 
 .print-btn {
