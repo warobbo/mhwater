@@ -176,6 +176,46 @@ test("season maps to typical heating hours", function () {
   assert.strictEqual(calc.heatingHoursForSeason("winter"), 12);
 });
 
+test("winter season uses propane; summer and mild stay on butane", function () {
+  assert.strictEqual(calc.gasTypeForSeason("winter"), "propane");
+  assert.strictEqual(calc.gasTypeForSeason("summer"), "butane");
+  assert.strictEqual(calc.gasTypeForSeason("mild"), "butane");
+  assert.strictEqual(calc.SEASONS.winter.gasType, "propane");
+  assert.strictEqual(calc.SEASONS.summer.gasType, "butane");
+  assert.strictEqual(calc.SEASONS.mild.gasType, "butane");
+});
+
+test("applying winter season selects propane and the 13 kg Calor bottle", function () {
+  var usage = calc.applySeasonToUsage(defaults.createDefaultUsage(), "winter");
+  assert.strictEqual(usage.season, "winter");
+  assert.strictEqual(usage.heatingLevel, "high");
+  assert.strictEqual(usage.heatingHours, 12);
+  assert.strictEqual(usage.gasType, "propane");
+  assert.strictEqual(usage.bottleId, "propane13");
+  assert.strictEqual(usage.bottleKg, 13);
+});
+
+test("applying summer or mild season keeps or restores butane", function () {
+  var fromWinter = calc.applySeasonToUsage(defaults.PRESETS.winterWeek.usage, "summer");
+  assert.strictEqual(fromWinter.season, "summer");
+  assert.strictEqual(fromWinter.heatingLevel, "off");
+  assert.strictEqual(fromWinter.gasType, "butane");
+  assert.strictEqual(fromWinter.bottleId, "butane15");
+  assert.strictEqual(fromWinter.bottleKg, 15);
+
+  var mild = calc.applySeasonToUsage(defaults.createDefaultUsage(), "mild");
+  assert.strictEqual(mild.season, "mild");
+  assert.strictEqual(mild.heatingLevel, "low");
+  assert.strictEqual(mild.gasType, "butane");
+  assert.strictEqual(mild.bottleId, "butane7");
+  assert.strictEqual(mild.bottleKg, 7);
+
+  var keepButane = calc.applySeasonToUsage(defaults.PRESETS.weekendSummer.usage, "summer");
+  assert.strictEqual(keepButane.gasType, "butane");
+  assert.strictEqual(keepButane.bottleId, "butane45");
+  assert.strictEqual(keepButane.bottleKg, 4.5);
+});
+
 test("storage writes gasUsage beside waterUsage", function () {
   var clean = storage.sanitiseProfile({
     version: 1,
@@ -197,6 +237,19 @@ test("applyGasPreset leaves water usage alone", function () {
   assert.strictEqual(profile.waterUsage.children, 2);
   assert.strictEqual(profile.gasUsage.activePreset, "winterWeek");
   assert.strictEqual(profile.gasUsage.tripDays, 7);
+  assert.strictEqual(profile.gasUsage.gasType, "propane");
+  assert.strictEqual(profile.gasUsage.bottleId, "propane13");
+  assert.strictEqual(profile.gasUsage.bottleKg, 13);
+});
+
+test("applyGasPreset weekend summer stays on butane", function () {
+  var profile = storage.applyGasPreset(waterDefaults.createDefaultProfile(), "winterWeek");
+  profile = storage.applyGasPreset(profile, "weekendSummer");
+  assert.strictEqual(profile.gasUsage.activePreset, "weekendSummer");
+  assert.strictEqual(profile.gasUsage.gasType, "butane");
+  assert.strictEqual(profile.gasUsage.bottleId, "butane45");
+  assert.strictEqual(profile.gasUsage.bottleKg, 4.5);
+  assert.strictEqual(profile.gasUsage.season, "summer");
 });
 
 test("defaults gas preset inherits water trip days", function () {

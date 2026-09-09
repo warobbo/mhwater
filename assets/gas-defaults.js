@@ -67,6 +67,7 @@
     winterWeek: {
       label: "Winter week",
       sublabel: "propane · heating on",
+      // Product lock: frost → propane and the 13 kg Calor leisure bottle.
       usage: {
         adults: 2,
         children: 0,

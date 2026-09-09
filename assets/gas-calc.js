@@ -72,9 +72,9 @@
   };
 
   var SEASONS = {
-    summer: { id: "summer", label: "Summer", heatingLevel: "off" },
-    mild: { id: "mild", label: "Mild", heatingLevel: "low" },
-    winter: { id: "winter", label: "Winter", heatingLevel: "high" },
+    summer: { id: "summer", label: "Summer", heatingLevel: "off", gasType: "butane" },
+    mild: { id: "mild", label: "Mild", heatingLevel: "low", gasType: "butane" },
+    winter: { id: "winter", label: "Winter", heatingLevel: "high", gasType: "propane" },
   };
 
   var GAS_TYPES = {
@@ -208,6 +208,38 @@
   function heatingHoursForSeason(season) {
     var spec = SEASONS[sanitiseSeason(season)];
     return HEATING_LEVELS[spec.heatingLevel].hours;
+  }
+
+  function gasTypeForSeason(season) {
+    return SEASONS[sanitiseSeason(season)].gasType;
+  }
+
+  /**
+   * Apply a season chip: typical heating hours, and the product gas lock
+   * (winter → propane 13 kg; summer / mild stay on butane).
+   */
+  function applySeasonToUsage(raw, seasonId, waterUsage) {
+    var season = SEASONS[sanitiseSeason(seasonId)];
+    var source = raw && typeof raw === "object" ? raw : {};
+    var nextType = season.gasType;
+    var currentType = sanitiseGasType(source.gasType);
+    var merged = {};
+    Object.keys(source).forEach(function (key) {
+      merged[key] = source[key];
+    });
+    merged.season = season.id;
+    merged.heatingLevel = season.heatingLevel;
+    merged.heatingHours = HEATING_LEVELS[season.heatingLevel].hours;
+    merged.gasType = nextType;
+    if (nextType === "propane") {
+      merged.bottleId = DEFAULT_BOTTLE_ID.propane;
+      merged.bottleKg = BOTTLES[merged.bottleId].kg;
+    } else if (currentType !== "butane") {
+      var currentKg = toNumber(source.bottleKg, BOTTLES[DEFAULT_BOTTLE_ID.butane].kg);
+      merged.bottleId = closestBottleId(currentKg, "butane");
+      merged.bottleKg = BOTTLES[merged.bottleId].kg;
+    }
+    return normaliseUsage(merged, waterUsage);
   }
 
   function normaliseUsage(raw, waterUsage) {
@@ -380,6 +412,8 @@
     matchBoilerLevel: matchBoilerLevel,
     matchBottleId: matchBottleId,
     heatingHoursForSeason: heatingHoursForSeason,
+    gasTypeForSeason: gasTypeForSeason,
+    applySeasonToUsage: applySeasonToUsage,
     normaliseUsage: normaliseUsage,
     calcGas: calcGas,
   };

@@ -167,7 +167,11 @@
       presetId === "defaults"
         ? GasDefaults.createDefaultUsage(next.waterUsage)
         : preset.usage;
-    next.gasUsage = sanitiseGasUsage(usage, next.waterUsage);
+    var copy = {};
+    Object.keys(usage).forEach(function (key) {
+      copy[key] = usage[key];
+    });
+    next.gasUsage = sanitiseGasUsage(copy, next.waterUsage);
     next.gasUsage.activePreset = presetId;
     return next;
   }
