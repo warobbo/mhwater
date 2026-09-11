@@ -72,6 +72,34 @@ body {
   padding: 1.25rem 0 0.75rem;
 }
 
+.site-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: fit-content;
+  margin: 0 0 0.15rem;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 12px;
+}
+
+.site-brand:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.site-brand .site-logo {
+  display: block;
+  width: 2.625rem;
+  height: 2.625rem;
+  flex: 0 0 2.625rem;
+  border-radius: 12px;
+}
+
+.site-brand .eyebrow {
+  margin: 0;
+}
+
 .eyebrow {
   margin: 0 0 0.35rem;
   color: var(--accent);
