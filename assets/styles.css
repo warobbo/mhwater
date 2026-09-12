@@ -133,9 +133,18 @@ body {
   margin: 0.75rem 0 0;
 }
 
+.hub-home {
+  margin: 0 0 0.55rem;
+}
+
+.site-footer .hub-home {
+  margin: 0.85rem 0 0.45rem;
+}
+
 .tool-nav a,
 .text-btn,
-.more-tools > summary {
+.more-tools > summary,
+.hub-home a {
   appearance: none;
   display: inline-flex;
   align-items: center;
