@@ -3,6 +3,10 @@ services:
     runtime: static
     name: mhwater
     staticPublishPath: .
+    routes:
+      - type: redirect
+        source: /index.html
+        destination: /
     envVars:
       - key: SKIP_INSTALL_DEPS
         value: "true"
