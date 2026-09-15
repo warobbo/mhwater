@@ -530,6 +530,9 @@ body {
 .tool-nav a:focus-visible,
 .more-tools > summary:focus-visible,
 .faq-list summary:focus-visible,
+.guides-list a:focus-visible,
+.footer-guides a:focus-visible,
+.legal-links a:focus-visible,
 input:focus-visible {
   outline: 3px solid #f0b25a;
   outline-offset: 2px;
@@ -572,6 +575,7 @@ input:focus-visible {
 .faq-card,
 .disclaimer,
 .next-tool,
+.guides-strip,
 .soon-card {
   position: relative;
   z-index: 1;
@@ -694,6 +698,74 @@ input:focus-visible {
   text-decoration: none;
 }
 
+.guides-strip {
+  margin: 1rem 0 0;
+}
+
+.guides-strip > p {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+}
+
+.guides-list {
+  list-style: none;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.guides-list a {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.6rem 0.9rem;
+  background: #fff;
+  border: 1px solid var(--card-edge);
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.guides-list a:hover {
+  border-color: var(--accent);
+}
+
+.guides-list .hint {
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.footer-guides,
+.legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+  margin: 0.75rem 0 0;
+}
+
+.footer-guides a,
+.legal-links a {
+  color: var(--accent);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.footer-guides a:hover,
+.legal-links a:hover {
+  text-decoration: underline;
+}
+
+.legal-sep {
+  color: var(--card-edge);
+}
+
 .site-footer {
   padding: 0 0 2rem;
   color: var(--muted);
@@ -769,6 +841,10 @@ input:focus-visible {
 }
 
 @media (min-width: 640px) {
+  .guides-list {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .field-grid {
     grid-template-columns: 1fr 1fr;
   }

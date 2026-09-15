@@ -93,6 +93,82 @@ test("render.yaml 301s /index.html to /", function () {
   assert.ok(yaml.indexOf("destination: /") !== -1, "missing / destination");
 });
 
+var guideUrls = [
+  "https://motorhometools.co.uk/guides/fresh-waste-tanks.html",
+  "https://motorhometools.co.uk/guides/gas-lpg-basics.html",
+  "https://motorhometools.co.uk/guides/cassette-toilet-empty.html",
+  "https://motorhometools.co.uk/guides/"
+];
+
+var legalUrls = [
+  "https://motorhometools.co.uk/privacy.html",
+  "https://motorhometools.co.uk/cookies.html",
+  "https://motorhometools.co.uk/disclaimer.html"
+];
+
+livePages.forEach(function (page) {
+  test(page.file + " links to matching Tools guides and legal pages", function () {
+    var html = read(page.file);
+    assert.ok(html.indexOf('class="help-card guides-strip') !== -1, "missing Guides strip");
+    assert.ok(html.indexOf("<h2 id=\"guides-title\">Guides</h2>") !== -1, "Guides heading should be plain English");
+    guideUrls.forEach(function (url) {
+      assert.ok(html.indexOf('href="' + url + '"') !== -1, "missing guide " + url);
+    });
+    legalUrls.forEach(function (url) {
+      assert.ok(html.indexOf('href="' + url + '"') !== -1, "missing legal " + url);
+    });
+    assert.ok(
+      html.indexOf('<meta property="og:image" content="https://motorhomewater.co.uk/assets/icon-512.png">') !== -1,
+      "missing og:image from existing icon"
+    );
+  });
+});
+
+test("Water home has honest WebApplication and BreadcrumbList JSON-LD", function () {
+  var html = read("index.html");
+  var match = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+  assert.ok(match, "missing JSON-LD script");
+  var data = JSON.parse(match[1]);
+  var graph = data["@graph"] || [];
+  var types = graph.map(function (node) { return node["@type"]; });
+  assert.ok(types.indexOf("WebApplication") !== -1, "need WebApplication");
+  assert.ok(types.indexOf("BreadcrumbList") !== -1, "need BreadcrumbList");
+  assert.ok(types.indexOf("FAQPage") === -1, "do not add FAQ JSON-LD");
+  assert.ok(types.indexOf("AggregateRating") === -1, "do not invent ratings");
+
+  var app = graph.filter(function (node) { return node["@type"] === "WebApplication"; })[0];
+  var meta = html.match(/<meta name="description" content="([^"]+)">/);
+  assert.ok(app, "WebApplication node missing");
+  assert.equal(app.url, "https://motorhomewater.co.uk/");
+  assert.equal(app.name, "Motorhome Water Usage Calculator");
+  assert.equal(app.description, meta[1], "JSON-LD description must match the on-page meta description");
+  assert.equal(app.isAccessibleForFree, true);
+  assert.ok(!app.offers, "do not invent a price Offer");
+  assert.ok(!app.aggregateRating, "do not invent ratings");
+  assert.ok(!app.review, "do not invent reviews");
+
+  var crumbs = graph.filter(function (node) { return node["@type"] === "BreadcrumbList"; })[0];
+  var items = crumbs.itemListElement || [];
+  assert.equal(items[0].name, "Home");
+  assert.equal(items[0].item, "https://motorhometools.co.uk/");
+  assert.equal(items[1].name, "Water");
+  assert.equal(items[1].item, "https://motorhomewater.co.uk/");
+});
+
+test("tool pages do not invent JSON-LD", function () {
+  ["gas.html", "tanks.html", "cassette.html"].forEach(function (file) {
+    assert.ok(read(file).indexOf("application/ld+json") === -1, file + " should not add JSON-LD");
+  });
+});
+
+comingSoonPages.forEach(function (file) {
+  test(file + " keeps Coming soon noindex and no new indexable chrome", function () {
+    var html = read(file);
+    assert.ok(html.indexOf('<meta name="robots" content="noindex,follow">') !== -1);
+    assert.ok(html.indexOf("application/ld+json") === -1, "do not add JSON-LD to placeholders");
+  });
+});
+
 if (failed) {
   process.exit(1);
 }
