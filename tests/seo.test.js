@@ -169,6 +169,80 @@ comingSoonPages.forEach(function (file) {
   });
 });
 
+var logoVersion = "20260915logos";
+var allPages = livePages.map(function (page) { return page.file; }).concat(comingSoonPages);
+var hubMarkFiles = [
+  "assets/logo.svg",
+  "assets/favicon.svg",
+  "assets/favicon-32.png",
+  "assets/apple-touch-icon.png",
+  "assets/icon-512.png"
+];
+var glyphFiles = [
+  "assets/glyph-gas.svg",
+  "assets/glyph-tanks.svg",
+  "assets/glyph-cassette.svg",
+  "assets/glyph-gas-32.png",
+  "assets/glyph-tanks-32.png",
+  "assets/glyph-cassette-32.png"
+];
+
+hubMarkFiles.concat(glyphFiles).forEach(function (file) {
+  test(file + " is present", function () {
+    assert.ok(fs.existsSync(path.join(root, file)), "missing " + file);
+  });
+});
+
+allPages.forEach(function (file) {
+  test(file + " cache-busts hub mark and sub-tool glyphs", function () {
+    var html = read(file);
+    [
+      "assets/favicon.svg",
+      "assets/favicon-32.png",
+      "assets/apple-touch-icon.png",
+      "assets/icon-512.png",
+      "assets/logo.svg",
+      "assets/glyph-gas.svg",
+      "assets/glyph-tanks.svg",
+      "assets/glyph-cassette.svg"
+    ].forEach(function (asset) {
+      assert.ok(
+        html.indexOf(asset + "?v=" + logoVersion) !== -1,
+        file + " missing cache-bust for " + asset
+      );
+    });
+    assert.ok(html.indexOf("20260911logo") === -1, file + " still uses the old logo cache-bust");
+  });
+
+  test(file + " keeps the locked Water / Gas / Tanks / Cassette nav", function () {
+    var html = read(file);
+    var nav = html.match(/<nav class="tool-nav no-print" aria-label="Main tools">([\s\S]*?)<\/nav>/);
+    assert.ok(nav, file + " missing main tool nav");
+    var hrefs = [];
+    nav[1].replace(/href="([^"]+)"/g, function (_, href) {
+      hrefs.push(href);
+      return _;
+    });
+    assert.deepStrictEqual(hrefs, ["/", "gas.html", "tanks.html", "cassette.html"]);
+    assert.ok(nav[1].indexOf("glyph-gas.svg?v=" + logoVersion) !== -1, "Gas nav needs the gas glyph");
+    assert.ok(nav[1].indexOf("glyph-tanks.svg?v=" + logoVersion) !== -1, "Tanks nav needs the tanks glyph");
+    assert.ok(nav[1].indexOf("glyph-cassette.svg?v=" + logoVersion) !== -1, "Cassette nav needs the cassette glyph");
+    assert.ok(!/glyph-(?!gas|tanks|cassette)/.test(nav[1]), "do not invent extra tool glyphs");
+  });
+});
+
+test("home hub chips show Gas, Tanks and Cassette glyphs only", function () {
+  var html = read("index.html");
+  var chips = html.match(/<section class="help-card next-tool no-print"[\s\S]*?<\/section>/);
+  assert.ok(chips, "missing home hub chips");
+  assert.ok(chips[0].indexOf("glyph-gas.svg?v=" + logoVersion) !== -1);
+  assert.ok(chips[0].indexOf("glyph-tanks.svg?v=" + logoVersion) !== -1);
+  assert.ok(chips[0].indexOf("glyph-cassette.svg?v=" + logoVersion) !== -1);
+  assert.ok(chips[0].indexOf("Gas / LPG usage") !== -1);
+  assert.ok(chips[0].indexOf("Holding tanks") !== -1);
+  assert.ok(chips[0].indexOf("Cassette empties") !== -1);
+});
+
 if (failed) {
   process.exit(1);
 }
