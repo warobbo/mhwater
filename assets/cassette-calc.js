@@ -184,6 +184,246 @@
     };
   }
 
+  /**
+   * Cassette URL prefill contract (Ask / share links).
+   *
+   * Recognised query params — unknown keys are ignored. A param only
+   * overrides the existing cassettePlan field when it is present and
+   * valid. Apply the patch onto the plan after defaults, then
+   * normalisePlan; do not invent flush rates or tank sizes.
+   *
+   *   adults                   number
+   *   children                 number
+   *   tripDays                 number (optional)
+   *   blackKind                cassette | fixed
+   *                            (aliases: fixedBlack, fixed-black, fixed_black)
+   *   blackTankLitres          number (one cassette / tank; Ask may pass
+   *                            the already-multiplied total, e.g. 36 for
+   *                            two 18 L cassettes)
+   *   cassetteCount            optional positive integer. When present
+   *                            and valid, effective capacity =
+   *                            blackTankLitres × cassetteCount
+   *                            (query litres if present, otherwise the
+   *                            current plan / inherited size). Not a
+   *                            form field — the page has no count input,
+   *                            so the product is stored as blackTankLitres.
+   *   flushesPerPersonPerDay   number
+   *   litresPerFlush           number
+   *   startPercent             number
+   *
+   * Page defaults (createDefaultPlan, when water/tanks have no values):
+   *   adults 2, children 0, tripDays 2, blackKind cassette,
+   *   blackTankLitres 18, flushesPerPersonPerDay 5,
+   *   litresPerFlush 0.25, startPercent 0.
+   *
+   * Parse with parseCassettePrefillQuery(search).
+   * Build with buildCassettePrefillHref(plan) → "cassette.html?...".
+   * buildCassettePrefillQuery emits the effective blackTankLitres, not
+   * cassetteCount (count is an Ask convenience, not stored on the plan).
+   */
+  var CASSETTE_PREFILL_KEYS = [
+    "adults",
+    "children",
+    "tripDays",
+    "blackKind",
+    "blackTankLitres",
+    "cassetteCount",
+    "flushesPerPersonPerDay",
+    "litresPerFlush",
+    "startPercent",
+  ];
+
+  var BLACK_KIND_ALIASES = {
+    cassette: "cassette",
+    fixed: "fixed",
+    fixedblack: "fixed",
+    "fixed-black": "fixed",
+    fixed_black: "fixed",
+  };
+
+  function decodeQueryPart(value) {
+    try {
+      return decodeURIComponent(String(value).replace(/\+/g, " "));
+    } catch (err) {
+      return String(value).replace(/\+/g, " ");
+    }
+  }
+
+  function queryParamsFromSearch(input) {
+    if (input == null || input === "") return {};
+    if (typeof input === "object") {
+      if (typeof input.get === "function") {
+        var fromSearch = {};
+        if (typeof input.forEach === "function") {
+          input.forEach(function (value, key) {
+            fromSearch[key] = value;
+          });
+          return fromSearch;
+        }
+        CASSETTE_PREFILL_KEYS.forEach(function (key) {
+          if (typeof input.has === "function" && input.has(key)) {
+            fromSearch[key] = input.get(key);
+          }
+        });
+        return fromSearch;
+      }
+      return input;
+    }
+
+    var search = String(input);
+    var qMark = search.indexOf("?");
+    if (qMark >= 0) search = search.slice(qMark + 1);
+    var hash = search.indexOf("#");
+    if (hash >= 0) search = search.slice(0, hash);
+    var out = {};
+    if (!search) return out;
+    search.split("&").forEach(function (pair) {
+      if (!pair) return;
+      var eq = pair.indexOf("=");
+      var rawKey = eq >= 0 ? pair.slice(0, eq) : pair;
+      var rawValue = eq >= 0 ? pair.slice(eq + 1) : "";
+      var key = decodeQueryPart(rawKey);
+      if (key) out[key] = decodeQueryPart(rawValue);
+    });
+    return out;
+  }
+
+  function hasOwnParam(params, key) {
+    return !!(params && Object.prototype.hasOwnProperty.call(params, key));
+  }
+
+  function parseQueryNumber(value) {
+    if (value == null) return undefined;
+    var trimmed = String(value).trim();
+    if (trimmed === "") return undefined;
+    var n = Number(trimmed);
+    return Number.isFinite(n) ? n : undefined;
+  }
+
+  function parseQueryBlackKind(value) {
+    if (value == null) return undefined;
+    var id = String(value).trim();
+    if (!id) return undefined;
+    var mapped = BLACK_KIND_ALIASES[id] || BLACK_KIND_ALIASES[id.toLowerCase()];
+    return mapped || undefined;
+  }
+
+  function parseQueryCount(value) {
+    var n = parseQueryNumber(value);
+    if (n == null || n < 1 || Math.round(n) !== n) return undefined;
+    return n;
+  }
+
+  function parseCassettePrefillQuery(search) {
+    var params = queryParamsFromSearch(search);
+    var patch = {};
+
+    if (hasOwnParam(params, "adults")) {
+      var adults = parseQueryNumber(params.adults);
+      if (adults != null) patch.adults = adults;
+    }
+    if (hasOwnParam(params, "children")) {
+      var children = parseQueryNumber(params.children);
+      if (children != null) patch.children = children;
+    }
+    if (hasOwnParam(params, "tripDays")) {
+      var tripDays = parseQueryNumber(params.tripDays);
+      if (tripDays != null) patch.tripDays = tripDays;
+    }
+    if (hasOwnParam(params, "blackKind")) {
+      var blackKind = parseQueryBlackKind(params.blackKind);
+      if (blackKind) patch.blackKind = blackKind;
+    }
+    if (hasOwnParam(params, "blackTankLitres")) {
+      var blackTankLitres = parseQueryNumber(params.blackTankLitres);
+      if (blackTankLitres != null) patch.blackTankLitres = blackTankLitres;
+    }
+    if (hasOwnParam(params, "cassetteCount")) {
+      var cassetteCount = parseQueryCount(params.cassetteCount);
+      if (cassetteCount != null) patch.cassetteCount = cassetteCount;
+    }
+    if (hasOwnParam(params, "flushesPerPersonPerDay")) {
+      var flushesPerPersonPerDay = parseQueryNumber(params.flushesPerPersonPerDay);
+      if (flushesPerPersonPerDay != null) patch.flushesPerPersonPerDay = flushesPerPersonPerDay;
+    }
+    if (hasOwnParam(params, "litresPerFlush")) {
+      var litresPerFlush = parseQueryNumber(params.litresPerFlush);
+      if (litresPerFlush != null) patch.litresPerFlush = litresPerFlush;
+    }
+    if (hasOwnParam(params, "startPercent")) {
+      var startPercent = parseQueryNumber(params.startPercent);
+      if (startPercent != null) patch.startPercent = startPercent;
+    }
+
+    return Object.keys(patch).length ? patch : null;
+  }
+
+  function copyPlan(raw) {
+    var copy = {};
+    var source = raw && typeof raw === "object" ? raw : {};
+    Object.keys(source).forEach(function (key) {
+      copy[key] = source[key];
+    });
+    return copy;
+  }
+
+  function applyCassettePrefillToPlan(plan, search, waterUsage, tankPlan) {
+    var patch = parseCassettePrefillQuery(search);
+    if (!patch) return null;
+
+    var merged = copyPlan(plan);
+    Object.keys(patch).forEach(function (key) {
+      if (key === "cassetteCount") return;
+      merged[key] = patch[key];
+    });
+
+    if (patch.cassetteCount != null) {
+      var unitLitres = patch.blackTankLitres;
+      if (unitLitres == null || unitLitres === "") {
+        unitLitres = normalisePlan(merged, waterUsage, tankPlan).blackTankLitres;
+      }
+      merged.blackTankLitres = toNumber(unitLitres, 0) * patch.cassetteCount;
+    }
+
+    var next = normalisePlan(merged, waterUsage, tankPlan);
+    next.activePreset = "";
+    return next;
+  }
+
+  function addPrefillParam(parts, key, value) {
+    parts.push(encodeURIComponent(key) + "=" + encodeURIComponent(String(value)));
+  }
+
+  function buildCassettePrefillQuery(plan) {
+    var p = plan && typeof plan === "object" ? plan : {};
+    var parts = [];
+
+    if (parseQueryNumber(p.adults) != null) addPrefillParam(parts, "adults", roundPeople(p.adults));
+    if (parseQueryNumber(p.children) != null) addPrefillParam(parts, "children", roundPeople(p.children));
+    if (parseQueryNumber(p.tripDays) != null) addPrefillParam(parts, "tripDays", toNumber(p.tripDays, 0));
+    if (parseQueryBlackKind(p.blackKind)) addPrefillParam(parts, "blackKind", parseQueryBlackKind(p.blackKind));
+    if (parseQueryNumber(p.blackTankLitres) != null) {
+      addPrefillParam(parts, "blackTankLitres", toNumber(p.blackTankLitres, 0));
+    }
+    if (parseQueryNumber(p.flushesPerPersonPerDay) != null) {
+      addPrefillParam(parts, "flushesPerPersonPerDay", toNumber(p.flushesPerPersonPerDay, 0));
+    }
+    if (parseQueryNumber(p.litresPerFlush) != null) {
+      addPrefillParam(parts, "litresPerFlush", toNumber(p.litresPerFlush, 0));
+    }
+    if (parseQueryNumber(p.startPercent) != null) {
+      addPrefillParam(parts, "startPercent", toNumber(p.startPercent, 0));
+    }
+
+    return parts.join("&");
+  }
+
+  function buildCassettePrefillHref(plan, base) {
+    var query = buildCassettePrefillQuery(plan);
+    var path = base == null || base === "" ? "cassette.html" : String(base);
+    return query ? path + "?" + query : path;
+  }
+
   return {
     MAX_PEOPLE: MAX_PEOPLE,
     MIN_TRIP_DAYS: MIN_TRIP_DAYS,
@@ -207,5 +447,10 @@
     extraStops: extraStops,
     tripEmpties: tripEmpties,
     calcCassette: calcCassette,
+    CASSETTE_PREFILL_KEYS: CASSETTE_PREFILL_KEYS,
+    parseCassettePrefillQuery: parseCassettePrefillQuery,
+    applyCassettePrefillToPlan: applyCassettePrefillToPlan,
+    buildCassettePrefillQuery: buildCassettePrefillQuery,
+    buildCassettePrefillHref: buildCassettePrefillHref,
   };
 });

@@ -283,6 +283,169 @@ test("storage key stays watertools.systemProfile", function () {
   assert.strictEqual(storage.STORAGE_KEY, "watertools.systemProfile");
 });
 
+test("parseCassettePrefillQuery reads the Ask cassette contract", function () {
+  var patch = calc.parseCassettePrefillQuery(
+    "cassette.html?adults=2&blackTankLitres=18&flushesPerPersonPerDay=5&litresPerFlush=0.25&startPercent=0"
+  );
+  assert.ok(patch);
+  assert.strictEqual(patch.adults, 2);
+  assert.strictEqual(patch.blackTankLitres, 18);
+  assert.strictEqual(patch.flushesPerPersonPerDay, 5);
+  assert.strictEqual(patch.litresPerFlush, 0.25);
+  assert.strictEqual(patch.startPercent, 0);
+  assert.strictEqual(patch.tripDays, undefined);
+  assert.strictEqual(patch.children, undefined);
+  assert.strictEqual(patch.blackKind, undefined);
+  assert.strictEqual(patch.cassetteCount, undefined);
+});
+
+test("parseCassettePrefillQuery ignores unknown keys and invalid values", function () {
+  assert.strictEqual(calc.parseCassettePrefillQuery(""), null);
+  assert.strictEqual(calc.parseCassettePrefillQuery("?foo=bar&utm_source=ask"), null);
+  var patch = calc.parseCassettePrefillQuery(
+    "?adults=nope&children=1&blackKind=portaloo&blackTankLitres=eighteen&flushesPerPersonPerDay=5&litresPerFlush=maybe&startPercent=&cassetteCount=1.5&tripDays=3"
+  );
+  assert.ok(patch);
+  assert.strictEqual(patch.children, 1);
+  assert.strictEqual(patch.flushesPerPersonPerDay, 5);
+  assert.strictEqual(patch.tripDays, 3);
+  assert.strictEqual(patch.adults, undefined);
+  assert.strictEqual(patch.blackKind, undefined);
+  assert.strictEqual(patch.blackTankLitres, undefined);
+  assert.strictEqual(patch.litresPerFlush, undefined);
+  assert.strictEqual(patch.startPercent, undefined);
+  assert.strictEqual(patch.cassetteCount, undefined);
+});
+
+test("parseCassettePrefillQuery accepts cassette, fixed and fixedBlack", function () {
+  assert.strictEqual(calc.parseCassettePrefillQuery("?blackKind=cassette").blackKind, "cassette");
+  assert.strictEqual(calc.parseCassettePrefillQuery("?blackKind=fixed").blackKind, "fixed");
+  assert.strictEqual(calc.parseCassettePrefillQuery("?blackKind=fixedBlack").blackKind, "fixed");
+  assert.strictEqual(calc.parseCassettePrefillQuery("?blackKind=fixed-black").blackKind, "fixed");
+});
+
+test("parseCassettePrefillQuery accepts a positive integer cassetteCount", function () {
+  var patch = calc.parseCassettePrefillQuery("?cassetteCount=2");
+  assert.strictEqual(patch.cassetteCount, 2);
+  assert.strictEqual(calc.parseCassettePrefillQuery("?cassetteCount=0"), null);
+  assert.strictEqual(calc.parseCassettePrefillQuery("?cassetteCount=-1"), null);
+  assert.strictEqual(calc.parseCassettePrefillQuery("?cassetteCount=two"), null);
+});
+
+test("applyCassettePrefillToPlan patches after defaults and keeps water and tanks", function () {
+  var water = {
+    adults: 4,
+    children: 2,
+    tripDays: 10,
+    cassetteFlushesPerPersonPerDay: 8,
+    cassetteLitresPerFlush: 0.4,
+  };
+  var tank = { blackKind: "fixed", blackTankLitres: 60, blackStartPercent: 25 };
+  var plan = defaults.createDefaultPlan(water, tank);
+  assert.strictEqual(plan.adults, 4);
+  assert.strictEqual(plan.children, 2);
+  assert.strictEqual(plan.blackTankLitres, 60);
+  assert.strictEqual(plan.flushesPerPersonPerDay, 8);
+
+  var next = calc.applyCassettePrefillToPlan(
+    plan,
+    "?adults=2&blackTankLitres=18&flushesPerPersonPerDay=5&litresPerFlush=0.25&startPercent=0",
+    water,
+    tank
+  );
+  assert.ok(next);
+  assert.strictEqual(next.adults, 2);
+  assert.strictEqual(next.children, 2);
+  assert.strictEqual(next.tripDays, 10);
+  assert.strictEqual(next.blackKind, "fixed");
+  assert.strictEqual(next.blackTankLitres, 18);
+  assert.strictEqual(next.flushesPerPersonPerDay, 5);
+  assert.strictEqual(next.litresPerFlush, 0.25);
+  assert.strictEqual(next.startPercent, 0);
+  assert.strictEqual(next.activePreset, "");
+
+  assert.strictEqual(water.adults, 4);
+  assert.strictEqual(water.cassetteFlushesPerPersonPerDay, 8);
+  assert.strictEqual(tank.blackTankLitres, 60);
+  assert.strictEqual(tank.blackStartPercent, 25);
+});
+
+test("applyCassettePrefillToPlan does not invent omitted flush rates or tank sizes", function () {
+  var plan = defaults.createDefaultPlan();
+  var next = calc.applyCassettePrefillToPlan(plan, "?adults=1&children=1");
+  assert.strictEqual(next.adults, 1);
+  assert.strictEqual(next.children, 1);
+  assert.strictEqual(next.tripDays, 2);
+  assert.strictEqual(next.blackKind, "cassette");
+  assert.strictEqual(next.blackTankLitres, 18);
+  assert.strictEqual(next.flushesPerPersonPerDay, 5);
+  assert.strictEqual(next.litresPerFlush, 0.25);
+  assert.strictEqual(next.startPercent, 0);
+});
+
+test("Ask default-looking query matches createDefaultPlan fields", function () {
+  var next = calc.applyCassettePrefillToPlan(
+    defaults.createDefaultPlan(),
+    "?adults=2&blackTankLitres=18&flushesPerPersonPerDay=5&litresPerFlush=0.25&startPercent=0"
+  );
+  var expected = calc.normalisePlan(defaults.createDefaultPlan());
+  assert.strictEqual(next.adults, expected.adults);
+  assert.strictEqual(next.children, expected.children);
+  assert.strictEqual(next.tripDays, expected.tripDays);
+  assert.strictEqual(next.blackKind, expected.blackKind);
+  assert.strictEqual(next.blackTankLitres, expected.blackTankLitres);
+  assert.strictEqual(next.flushesPerPersonPerDay, expected.flushesPerPersonPerDay);
+  assert.strictEqual(next.litresPerFlush, expected.litresPerFlush);
+  assert.strictEqual(next.startPercent, expected.startPercent);
+});
+
+test("cassetteCount multiplies blackTankLitres for planning", function () {
+  var twoCassettes = calc.applyCassettePrefillToPlan(
+    defaults.createDefaultPlan(),
+    "?blackTankLitres=18&cassetteCount=2"
+  );
+  assert.strictEqual(twoCassettes.blackTankLitres, 36);
+
+  var inherited = calc.applyCassettePrefillToPlan(defaults.createDefaultPlan(), "?cassetteCount=2");
+  assert.strictEqual(inherited.blackTankLitres, 36);
+  assert.strictEqual(inherited.flushesPerPersonPerDay, 5);
+  assert.strictEqual(inherited.litresPerFlush, 0.25);
+});
+
+test("applyCassettePrefillToPlan returns null when nothing valid is present", function () {
+  var plan = defaults.createDefaultPlan();
+  assert.strictEqual(calc.applyCassettePrefillToPlan(plan, ""), null);
+  assert.strictEqual(calc.applyCassettePrefillToPlan(plan, "?foo=1&blackKind=nope&cassetteCount=0"), null);
+});
+
+test("buildCassettePrefillHref round-trips through the parser", function () {
+  var plan = {
+    adults: 2,
+    children: 1,
+    tripDays: 5,
+    blackKind: "fixed",
+    blackTankLitres: 80,
+    flushesPerPersonPerDay: 4,
+    litresPerFlush: 0.3,
+    startPercent: 10,
+  };
+  var href = calc.buildCassettePrefillHref(plan);
+  assert.ok(href.indexOf("cassette.html?") === 0);
+  assert.ok(href.indexOf("blackKind=fixed") !== -1);
+  assert.ok(href.indexOf("blackTankLitres=80") !== -1);
+  assert.ok(href.indexOf("cassetteCount=") === -1);
+
+  var again = calc.applyCassettePrefillToPlan(defaults.createDefaultPlan(), href);
+  assert.strictEqual(again.adults, 2);
+  assert.strictEqual(again.children, 1);
+  assert.strictEqual(again.tripDays, 5);
+  assert.strictEqual(again.blackKind, "fixed");
+  assert.strictEqual(again.blackTankLitres, 80);
+  assert.strictEqual(again.flushesPerPersonPerDay, 4);
+  assert.strictEqual(again.litresPerFlush, 0.3);
+  assert.strictEqual(again.startPercent, 10);
+});
+
 if (failed) {
   console.error("\n" + failed + " failed");
   process.exit(1);
