@@ -11,6 +11,19 @@
   }
   var lastSaved = "";
 
+  // URL prefill (Ask / share links) patches cassettePlan only —
+  // waterUsage and tankPlan stay.
+  var prefilled = calc.applyCassettePrefillToPlan(
+    profile.cassettePlan,
+    window.location.search,
+    profile.waterUsage,
+    profile.tankPlan
+  );
+  if (prefilled) {
+    profile.cassettePlan = prefilled;
+    profile.cassettePlan.activePreset = "";
+  }
+
   var els = {
     emptyDays: document.getElementById("empty-days"),
     emptyHint: document.getElementById("empty-hint"),
