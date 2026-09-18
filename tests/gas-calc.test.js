@@ -298,6 +298,191 @@ test("storage key stays watertools.systemProfile", function () {
   assert.strictEqual(storage.STORAGE_KEY, "watertools.systemProfile");
 });
 
+test("parseGasPrefillQuery reads the Ask cooking-only contract", function () {
+  var patch = calc.parseGasPrefillQuery(
+    "gas.html?mealsPerDay=2&cookingStyle=heavy&adults=2&heatingLevel=off&fridgeGasEnabled=0&boilerEnabled=0&gasType=butane&bottleId=butane7"
+  );
+  assert.ok(patch);
+  assert.strictEqual(patch.mealsPerDay, 2);
+  assert.strictEqual(patch.cookingStyle, "heavy");
+  assert.strictEqual(patch.adults, 2);
+  assert.strictEqual(patch.heatingLevel, "off");
+  assert.strictEqual(patch.fridgeGasEnabled, false);
+  assert.strictEqual(patch.boilerEnabled, false);
+  assert.strictEqual(patch.gasType, "butane");
+  assert.strictEqual(patch.bottleId, "butane7");
+  assert.strictEqual(patch.tripDays, undefined);
+});
+
+test("parseGasPrefillQuery ignores unknown keys and invalid values", function () {
+  assert.strictEqual(calc.parseGasPrefillQuery(""), null);
+  assert.strictEqual(calc.parseGasPrefillQuery("?foo=bar&utm_source=ask"), null);
+  var patch = calc.parseGasPrefillQuery(
+    "?adults=nope&children=1&cookingStyle=super&heatingLevel=toasty&fridgeGasEnabled=maybe&gasType=lpg&bottleId=steel11&mealsPerDay=2"
+  );
+  assert.ok(patch);
+  assert.strictEqual(patch.children, 1);
+  assert.strictEqual(patch.mealsPerDay, 2);
+  assert.strictEqual(patch.adults, undefined);
+  assert.strictEqual(patch.cookingStyle, undefined);
+  assert.strictEqual(patch.heatingLevel, undefined);
+  assert.strictEqual(patch.fridgeGasEnabled, undefined);
+  assert.strictEqual(patch.gasType, undefined);
+  assert.strictEqual(patch.bottleId, undefined);
+});
+
+test("parseGasPrefillQuery accepts 0/1/true/false for flags", function () {
+  var a = calc.parseGasPrefillQuery("?fridgeGasEnabled=true&boilerEnabled=false");
+  assert.strictEqual(a.fridgeGasEnabled, true);
+  assert.strictEqual(a.boilerEnabled, false);
+  var b = calc.parseGasPrefillQuery("?fridgeGasEnabled=1&boilerEnabled=0");
+  assert.strictEqual(b.fridgeGasEnabled, true);
+  assert.strictEqual(b.boilerEnabled, false);
+});
+
+test("applyGasPrefillToUsage patches gas after defaults and keeps water", function () {
+  var water = {
+    adults: 4,
+    children: 2,
+    tripDays: 10,
+    showerStyle: "long",
+  };
+  var gas = defaults.createDefaultUsage(water);
+  assert.strictEqual(gas.adults, 4);
+  assert.strictEqual(gas.children, 2);
+  assert.strictEqual(gas.cookingStyle, "normal");
+
+  var next = calc.applyGasPrefillToUsage(
+    gas,
+    "?mealsPerDay=2&cookingStyle=heavy&adults=2&heatingLevel=off&fridgeGasEnabled=0&boilerEnabled=0&gasType=butane&bottleId=butane7",
+    water
+  );
+  assert.ok(next);
+  assert.strictEqual(next.adults, 2);
+  assert.strictEqual(next.children, 2);
+  assert.strictEqual(next.tripDays, 10);
+  assert.strictEqual(next.mealsPerDay, 2);
+  assert.strictEqual(next.cookingStyle, "heavy");
+  assert.strictEqual(next.heatingLevel, "off");
+  assert.strictEqual(next.heatingHours, 0);
+  assert.strictEqual(next.fridgeGasEnabled, false);
+  assert.strictEqual(next.boilerEnabled, false);
+  assert.strictEqual(next.gasType, "butane");
+  assert.strictEqual(next.bottleId, "butane7");
+  assert.strictEqual(next.bottleKg, 7);
+  assert.strictEqual(next.activePreset, "");
+
+  assert.strictEqual(water.adults, 4);
+  assert.strictEqual(water.children, 2);
+  assert.strictEqual(water.tripDays, 10);
+  assert.strictEqual(water.showerStyle, "long");
+});
+
+test("cooking-only Ask link yields non-zero bottle days", function () {
+  var usage = calc.applyGasPrefillToUsage(
+    defaults.createDefaultUsage(),
+    "?mealsPerDay=2&cookingStyle=heavy&adults=2&heatingLevel=off&fridgeGasEnabled=0&boilerEnabled=0&gasType=butane&bottleId=butane7"
+  );
+  var result = calc.calcGas(usage);
+  var cookDaily = 2 * 2 * 0.07;
+  almostEqual(result.cookDaily, cookDaily);
+  almostEqual(result.heatDaily, 0);
+  almostEqual(result.fridgeDaily, 0);
+  almostEqual(result.boilerDaily, 0);
+  almostEqual(result.dailyKg, cookDaily);
+  almostEqual(result.bottleDays, 7 / cookDaily);
+  assert.ok(result.bottleDays > 0);
+});
+
+test("prefill heatingHours and boilerHours match existing levels", function () {
+  var usage = calc.applyGasPrefillToUsage(
+    defaults.createDefaultUsage(),
+    "?heatingHours=6&boilerEnabled=1&boilerHours=3"
+  );
+  assert.strictEqual(usage.heatingLevel, "medium");
+  assert.strictEqual(usage.heatingHours, 6);
+  assert.strictEqual(usage.boilerEnabled, true);
+  assert.strictEqual(usage.boilerLevel, "heavy");
+  assert.strictEqual(usage.boilerHours, 3);
+});
+
+test("prefill bottleKg without bottleId selects the closest Calor size", function () {
+  var butane = calc.applyGasPrefillToUsage(defaults.createDefaultUsage(), "?bottleKg=15");
+  assert.strictEqual(butane.gasType, "butane");
+  assert.strictEqual(butane.bottleId, "butane15");
+  assert.strictEqual(butane.bottleKg, 15);
+
+  var propane = calc.applyGasPrefillToUsage(
+    defaults.createDefaultUsage(),
+    "?gasType=propane&bottleKg=13"
+  );
+  assert.strictEqual(propane.gasType, "propane");
+  assert.strictEqual(propane.bottleId, "propane13");
+  assert.strictEqual(propane.bottleKg, 13);
+});
+
+test("prefill custom bottleKg keeps the typed size", function () {
+  var usage = calc.applyGasPrefillToUsage(
+    defaults.createDefaultUsage(),
+    "?bottleId=custom&bottleKg=11"
+  );
+  assert.strictEqual(usage.bottleId, "custom");
+  assert.strictEqual(usage.bottleKg, 11);
+});
+
+test("prefill bottleId infers gas type when gasType is omitted", function () {
+  var usage = calc.applyGasPrefillToUsage(
+    defaults.createDefaultUsage(),
+    "?bottleId=propane13"
+  );
+  assert.strictEqual(usage.gasType, "propane");
+  assert.strictEqual(usage.bottleId, "propane13");
+  assert.strictEqual(usage.bottleKg, 13);
+});
+
+test("applyGasPrefillToUsage returns null when nothing valid is present", function () {
+  var gas = defaults.createDefaultUsage();
+  assert.strictEqual(calc.applyGasPrefillToUsage(gas, ""), null);
+  assert.strictEqual(calc.applyGasPrefillToUsage(gas, "?foo=1&cookingStyle=nope"), null);
+});
+
+test("buildGasPrefillHref round-trips through the parser", function () {
+  var usage = {
+    adults: 2,
+    children: 1,
+    tripDays: 5,
+    mealsPerDay: 2,
+    cookingStyle: "heavy",
+    heatingLevel: "off",
+    heatingHours: 0,
+    fridgeGasEnabled: false,
+    boilerEnabled: true,
+    boilerLevel: "light",
+    boilerHours: 0.5,
+    gasType: "butane",
+    bottleId: "butane7",
+    bottleKg: 7,
+  };
+  var href = calc.buildGasPrefillHref(usage);
+  assert.ok(href.indexOf("gas.html?") === 0);
+  assert.ok(href.indexOf("cookingStyle=heavy") !== -1);
+  assert.ok(href.indexOf("fridgeGasEnabled=0") !== -1);
+  assert.ok(href.indexOf("boilerEnabled=1") !== -1);
+  assert.ok(href.indexOf("bottleId=butane7") !== -1);
+
+  var again = calc.applyGasPrefillToUsage(defaults.createDefaultUsage(), href);
+  assert.strictEqual(again.adults, 2);
+  assert.strictEqual(again.children, 1);
+  assert.strictEqual(again.tripDays, 5);
+  assert.strictEqual(again.cookingStyle, "heavy");
+  assert.strictEqual(again.heatingLevel, "off");
+  assert.strictEqual(again.fridgeGasEnabled, false);
+  assert.strictEqual(again.boilerEnabled, true);
+  assert.strictEqual(again.boilerLevel, "light");
+  assert.strictEqual(again.gasType, "butane");
+  assert.strictEqual(again.bottleId, "butane7");
+});
+
 if (failed) {
   console.error("\n" + failed + " failed");
   process.exit(1);
