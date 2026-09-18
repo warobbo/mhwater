@@ -375,6 +375,292 @@
     };
   }
 
+  /**
+   * Gas URL prefill contract (Ask / share links).
+   *
+   * Recognised query params — unknown keys are ignored. A param only
+   * overrides the existing gasUsage field when it is present and valid.
+   * Apply the patch onto gasUsage after defaults, then normaliseUsage;
+   * do not invent burn rates or wipe waterUsage.
+   *
+   *   adults            number
+   *   children          number
+   *   tripDays          number (optional)
+   *   mealsPerDay       number
+   *   cookingStyle      light | normal | heavy
+   *   heatingLevel      off | low | medium | high
+   *   heatingHours      number (used when heatingLevel is omitted;
+   *                     matchHeatingLevel picks off/low/medium/high/custom)
+   *   fridgeGasEnabled  0 | 1 | true | false
+   *   boilerEnabled     0 | 1 | true | false
+   *   boilerLevel       light | normal | heavy
+   *   boilerHours       number (used when boilerLevel is omitted)
+   *   gasType           butane | propane
+   *   bottleId          butane45 | butane7 | butane15 |
+   *                     propane39 | propane6 | propane13 | custom
+   *   bottleKg          number (used when bottleId=custom, or to pick
+   *                     the closest Calor size for the gas type)
+   *
+   * Parse with parseGasPrefillQuery(search).
+   * Build with buildGasPrefillHref(usage) → "gas.html?...".
+   */
+  var GAS_PREFILL_KEYS = [
+    "adults",
+    "children",
+    "tripDays",
+    "mealsPerDay",
+    "cookingStyle",
+    "heatingLevel",
+    "heatingHours",
+    "fridgeGasEnabled",
+    "boilerEnabled",
+    "boilerLevel",
+    "boilerHours",
+    "gasType",
+    "bottleId",
+    "bottleKg",
+  ];
+
+  function decodeQueryPart(value) {
+    try {
+      return decodeURIComponent(String(value).replace(/\+/g, " "));
+    } catch (err) {
+      return String(value).replace(/\+/g, " ");
+    }
+  }
+
+  function queryParamsFromSearch(input) {
+    if (input == null || input === "") return {};
+    if (typeof input === "object") {
+      if (typeof input.get === "function") {
+        var fromSearch = {};
+        if (typeof input.forEach === "function") {
+          input.forEach(function (value, key) {
+            fromSearch[key] = value;
+          });
+          return fromSearch;
+        }
+        GAS_PREFILL_KEYS.forEach(function (key) {
+          if (typeof input.has === "function" && input.has(key)) {
+            fromSearch[key] = input.get(key);
+          }
+        });
+        return fromSearch;
+      }
+      return input;
+    }
+
+    var search = String(input);
+    var qMark = search.indexOf("?");
+    if (qMark >= 0) search = search.slice(qMark + 1);
+    var hash = search.indexOf("#");
+    if (hash >= 0) search = search.slice(0, hash);
+    var out = {};
+    if (!search) return out;
+    search.split("&").forEach(function (pair) {
+      if (!pair) return;
+      var eq = pair.indexOf("=");
+      var rawKey = eq >= 0 ? pair.slice(0, eq) : pair;
+      var rawValue = eq >= 0 ? pair.slice(eq + 1) : "";
+      var key = decodeQueryPart(rawKey);
+      if (key) out[key] = decodeQueryPart(rawValue);
+    });
+    return out;
+  }
+
+  function hasOwnParam(params, key) {
+    return !!(params && Object.prototype.hasOwnProperty.call(params, key));
+  }
+
+  function parseQueryNumber(value) {
+    if (value == null) return undefined;
+    var trimmed = String(value).trim();
+    if (trimmed === "") return undefined;
+    var n = Number(trimmed);
+    return Number.isFinite(n) ? n : undefined;
+  }
+
+  function parseQueryBool(value) {
+    if (value == null) return undefined;
+    var s = String(value).trim().toLowerCase();
+    if (s === "1" || s === "true") return true;
+    if (s === "0" || s === "false") return false;
+    return undefined;
+  }
+
+  function parseQueryChoice(value, allowed) {
+    if (value == null) return undefined;
+    var id = String(value).trim();
+    if (allowed[id]) return id;
+    var lower = id.toLowerCase();
+    if (allowed[lower]) return lower;
+    return undefined;
+  }
+
+  function parseQueryBottleId(value) {
+    if (value == null) return undefined;
+    var id = String(value).trim();
+    var lower = id.toLowerCase();
+    if (lower === "custom") return "custom";
+    if (BOTTLES[id]) return id;
+    if (BOTTLES[lower]) return lower;
+    return undefined;
+  }
+
+  function parseGasPrefillQuery(search) {
+    var params = queryParamsFromSearch(search);
+    var patch = {};
+
+    if (hasOwnParam(params, "adults")) {
+      var adults = parseQueryNumber(params.adults);
+      if (adults != null) patch.adults = adults;
+    }
+    if (hasOwnParam(params, "children")) {
+      var children = parseQueryNumber(params.children);
+      if (children != null) patch.children = children;
+    }
+    if (hasOwnParam(params, "tripDays")) {
+      var tripDays = parseQueryNumber(params.tripDays);
+      if (tripDays != null) patch.tripDays = tripDays;
+    }
+    if (hasOwnParam(params, "mealsPerDay")) {
+      var mealsPerDay = parseQueryNumber(params.mealsPerDay);
+      if (mealsPerDay != null) patch.mealsPerDay = mealsPerDay;
+    }
+    if (hasOwnParam(params, "cookingStyle")) {
+      var cookingStyle = parseQueryChoice(params.cookingStyle, COOK_STYLES);
+      if (cookingStyle) patch.cookingStyle = cookingStyle;
+    }
+    if (hasOwnParam(params, "heatingLevel")) {
+      var heatingLevel = parseQueryChoice(params.heatingLevel, HEATING_LEVELS);
+      if (heatingLevel) patch.heatingLevel = heatingLevel;
+    }
+    if (hasOwnParam(params, "heatingHours")) {
+      var heatingHours = parseQueryNumber(params.heatingHours);
+      if (heatingHours != null) patch.heatingHours = heatingHours;
+    }
+    if (hasOwnParam(params, "fridgeGasEnabled")) {
+      var fridgeGasEnabled = parseQueryBool(params.fridgeGasEnabled);
+      if (fridgeGasEnabled != null) patch.fridgeGasEnabled = fridgeGasEnabled;
+    }
+    if (hasOwnParam(params, "boilerEnabled")) {
+      var boilerEnabled = parseQueryBool(params.boilerEnabled);
+      if (boilerEnabled != null) patch.boilerEnabled = boilerEnabled;
+    }
+    if (hasOwnParam(params, "boilerLevel")) {
+      var boilerLevel = parseQueryChoice(params.boilerLevel, BOILER_LEVELS);
+      if (boilerLevel) patch.boilerLevel = boilerLevel;
+    }
+    if (hasOwnParam(params, "boilerHours")) {
+      var boilerHours = parseQueryNumber(params.boilerHours);
+      if (boilerHours != null) patch.boilerHours = boilerHours;
+    }
+    if (hasOwnParam(params, "gasType")) {
+      var gasType = parseQueryChoice(params.gasType, GAS_TYPES);
+      if (gasType) patch.gasType = gasType;
+    }
+    if (hasOwnParam(params, "bottleId")) {
+      var bottleId = parseQueryBottleId(params.bottleId);
+      if (bottleId) patch.bottleId = bottleId;
+    }
+    if (hasOwnParam(params, "bottleKg")) {
+      var bottleKg = parseQueryNumber(params.bottleKg);
+      if (bottleKg != null) patch.bottleKg = bottleKg;
+    }
+
+    return Object.keys(patch).length ? patch : null;
+  }
+
+  function copyUsage(raw) {
+    var copy = {};
+    var source = raw && typeof raw === "object" ? raw : {};
+    Object.keys(source).forEach(function (key) {
+      copy[key] = source[key];
+    });
+    return copy;
+  }
+
+  function applyGasPrefillToUsage(usage, search, waterUsage) {
+    var patch = parseGasPrefillQuery(search);
+    if (!patch) return null;
+
+    var merged = copyUsage(usage);
+    Object.keys(patch).forEach(function (key) {
+      merged[key] = patch[key];
+    });
+
+    if (patch.bottleId && patch.bottleId !== "custom" && BOTTLES[patch.bottleId] && patch.gasType == null) {
+      merged.gasType = BOTTLES[patch.bottleId].gasType;
+    }
+    if (patch.bottleKg != null && patch.bottleId == null) {
+      merged.bottleId = closestBottleId(patch.bottleKg, patch.gasType || merged.gasType);
+    }
+    if (patch.heatingHours != null && patch.heatingLevel == null) {
+      merged.heatingLevel = matchHeatingLevel(patch.heatingHours);
+    }
+    if (patch.boilerHours != null && patch.boilerLevel == null) {
+      merged.boilerLevel = matchBoilerLevel(patch.boilerHours);
+    }
+
+    var next = normaliseUsage(merged, waterUsage);
+    next.activePreset = "";
+    return next;
+  }
+
+  function addPrefillParam(parts, key, value) {
+    parts.push(encodeURIComponent(key) + "=" + encodeURIComponent(String(value)));
+  }
+
+  function buildGasPrefillQuery(usage) {
+    var u = usage && typeof usage === "object" ? usage : {};
+    var parts = [];
+
+    if (parseQueryNumber(u.adults) != null) addPrefillParam(parts, "adults", roundPeople(u.adults));
+    if (parseQueryNumber(u.children) != null) addPrefillParam(parts, "children", roundPeople(u.children));
+    if (parseQueryNumber(u.tripDays) != null) addPrefillParam(parts, "tripDays", toNumber(u.tripDays, 0));
+    if (parseQueryNumber(u.mealsPerDay) != null) {
+      addPrefillParam(parts, "mealsPerDay", toNumber(u.mealsPerDay, 0));
+    }
+    if (COOK_STYLES[u.cookingStyle]) addPrefillParam(parts, "cookingStyle", u.cookingStyle);
+    if (HEATING_LEVELS[u.heatingLevel]) {
+      addPrefillParam(parts, "heatingLevel", u.heatingLevel);
+    } else if (parseQueryNumber(u.heatingHours) != null) {
+      addPrefillParam(parts, "heatingHours", toNumber(u.heatingHours, 0));
+    }
+    if (typeof u.fridgeGasEnabled === "boolean") {
+      addPrefillParam(parts, "fridgeGasEnabled", u.fridgeGasEnabled ? "1" : "0");
+    } else if (parseQueryBool(u.fridgeGasEnabled) != null) {
+      addPrefillParam(parts, "fridgeGasEnabled", parseQueryBool(u.fridgeGasEnabled) ? "1" : "0");
+    }
+    if (typeof u.boilerEnabled === "boolean") {
+      addPrefillParam(parts, "boilerEnabled", u.boilerEnabled ? "1" : "0");
+    } else if (parseQueryBool(u.boilerEnabled) != null) {
+      addPrefillParam(parts, "boilerEnabled", parseQueryBool(u.boilerEnabled) ? "1" : "0");
+    }
+    if (BOILER_LEVELS[u.boilerLevel]) {
+      addPrefillParam(parts, "boilerLevel", u.boilerLevel);
+    } else if (parseQueryNumber(u.boilerHours) != null) {
+      addPrefillParam(parts, "boilerHours", toNumber(u.boilerHours, 0));
+    }
+    if (GAS_TYPES[u.gasType]) addPrefillParam(parts, "gasType", u.gasType);
+    if (u.bottleId === "custom" || BOTTLES[u.bottleId]) {
+      addPrefillParam(parts, "bottleId", u.bottleId);
+    }
+    if (u.bottleId === "custom" && parseQueryNumber(u.bottleKg) != null) {
+      addPrefillParam(parts, "bottleKg", toNumber(u.bottleKg, 0));
+    } else if (!u.bottleId && parseQueryNumber(u.bottleKg) != null) {
+      addPrefillParam(parts, "bottleKg", toNumber(u.bottleKg, 0));
+    }
+
+    return parts.join("&");
+  }
+
+  function buildGasPrefillHref(usage, base) {
+    var query = buildGasPrefillQuery(usage);
+    var path = base == null || base === "" ? "gas.html" : String(base);
+    return query ? path + "?" + query : path;
+  }
+
   return {
     CHILD_FACTOR: CHILD_FACTOR,
     HEATER_KG_PER_HOUR: HEATER_KG_PER_HOUR,
@@ -416,5 +702,10 @@
     applySeasonToUsage: applySeasonToUsage,
     normaliseUsage: normaliseUsage,
     calcGas: calcGas,
+    GAS_PREFILL_KEYS: GAS_PREFILL_KEYS,
+    parseGasPrefillQuery: parseGasPrefillQuery,
+    applyGasPrefillToUsage: applyGasPrefillToUsage,
+    buildGasPrefillQuery: buildGasPrefillQuery,
+    buildGasPrefillHref: buildGasPrefillHref,
   };
 });

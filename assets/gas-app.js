@@ -11,6 +11,17 @@
   }
   var lastSaved = "";
 
+  // URL prefill (Ask / share links) patches gasUsage only — waterUsage stays.
+  var prefilled = calc.applyGasPrefillToUsage(
+    profile.gasUsage,
+    window.location.search,
+    profile.waterUsage
+  );
+  if (prefilled) {
+    profile.gasUsage = prefilled;
+    profile.gasUsage.activePreset = "";
+  }
+
   var els = {
     breakdownList: document.getElementById("breakdown-list"),
     totalTrip: document.getElementById("total-trip"),
