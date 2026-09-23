@@ -1,3 +1,0 @@
-# Intentionally not a site page. Render static sites serve a file instead of
-# applying a redirect when a file exists at that path, so this publish
-# directory stays empty of HTML, assets, robots.txt, and sitemap.xml.

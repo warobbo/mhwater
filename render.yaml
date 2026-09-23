@@ -1,13 +1,15 @@
-# motorhomewater.co.uk and mhwater.onrender.com are this static service.
-# Redirect rules are HTTP 301. Render ignores a rule when a file exists at
-# that path, so the publish directory is public/ and contains no site pages.
-# The build also removes repo-root files in case the service still publishes ".".
 services:
   - type: web
     runtime: static
     name: mhwater
-    buildCommand: "mkdir -p public && find . -mindepth 1 -maxdepth 1 -name public -prune -o -name .git -prune -o -exec rm -rf {} +"
-    staticPublishPath: public
+    staticPublishPath: .
+    # HTTP 301s to the hub. Render applies these from a synced Blueprint or
+    # from the mhwater service: Dashboard → Redirects/Rewrites.
+    # A rule is skipped when a file exists at that path. The HTML stubs
+    # answer 200 until they are removed after these rules are saved.
+    # Live service publishes "." with an empty build command. Git deploy
+    # does not apply a different publish directory from this file.
+    # Hosts: motorhomewater.co.uk and mhwater.onrender.com.
     routes:
       - type: redirect
         source: /
@@ -39,6 +41,10 @@ services:
       - type: redirect
         source: /*
         destination: https://motorhometools.co.uk/water/
+    headers:
+      - path: /*
+        name: X-Robots-Tag
+        value: noindex
     envVars:
       - key: SKIP_INSTALL_DEPS
         value: "true"
