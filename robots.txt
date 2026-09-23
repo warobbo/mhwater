@@ -1,5 +1,2 @@
 User-agent: *
-Allow: /
-Disallow:
-
-Sitemap: https://motorhomewater.co.uk/sitemap.xml
+Disallow: /

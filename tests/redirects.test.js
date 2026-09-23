@@ -52,21 +52,14 @@ var mapped = {
   "/*": HUB
 };
 
-test("static site publishes public/ so existing pages cannot shadow redirects", function () {
+test("static site publishes repo root so the HTML stubs auto-deploy", function () {
   assert.ok(yaml.indexOf("runtime: static") !== -1);
-  assert.ok(yaml.indexOf("staticPublishPath: public") !== -1);
+  assert.ok(yaml.indexOf("staticPublishPath: .") !== -1);
+  assert.ok(yaml.indexOf("staticPublishPath: public") === -1);
   assert.ok(yaml.indexOf("name: mhwater") !== -1);
-  assert.ok(
-    yaml.indexOf("find . -mindepth 1 -maxdepth 1 -name public -prune -o -name .git -prune -o -exec rm -rf {} +") !== -1,
-    "build should remove repo-root files that would be served if publish directory is still ."
-  );
-});
-
-test("public/ has no pages, assets, robots, or sitemap", function () {
-  var names = fs.readdirSync(path.join(root, "public"));
-  assert.deepStrictEqual(names, [".gitkeep"]);
-  ["index.html", "robots.txt", "sitemap.xml"].forEach(function (file) {
-    assert.ok(!fs.existsSync(path.join(root, "public", file)), file + " must not be published");
+  assert.ok(!/rm -rf/.test(yaml), "do not delete root HTML on build");
+  ["index.html", "gas.html", "cassette.html", "robots.txt"].forEach(function (file) {
+    assert.ok(fs.existsSync(path.join(root, file)), file + " must stay at the publish root");
   });
 });
 
