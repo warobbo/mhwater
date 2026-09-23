@@ -69,25 +69,11 @@ var yaml = load("render.yaml");
 var redirectsFile = load("_redirects");
 
 pages.forEach(function (page) {
-  test(page.file + " is a noindex client redirect to the hub", function () {
-    var html = load(page.file);
-    assert.ok(html.indexOf('<meta name="robots" content="noindex">') !== -1, "missing noindex");
+  test(page.file + " is not published, so it cannot return HTTP 200", function () {
     assert.ok(
-      html.indexOf('<link rel="canonical" href="' + page.dest + '">') !== -1,
-      "missing canonical " + page.dest
+      !fs.existsSync(path.join(root, page.file)),
+      page.file + " would be served as 200 and block the redirect"
     );
-    assert.ok(
-      html.indexOf('<meta http-equiv="refresh" content="0;url=' + page.dest + '">') !== -1,
-      "missing meta refresh to " + page.dest
-    );
-    assert.ok(
-      html.indexOf('location.replace("' + page.dest + '" + location.search + location.hash)') !== -1,
-      "missing location.replace that keeps search and hash"
-    );
-    assert.ok(html.indexOf('href="' + page.dest + '"') !== -1, "missing fallback link");
-    assert.ok(html.indexOf("motorhomewater.co.uk") === -1, "stub still names the old host");
-    assert.ok(!/content=["']index,follow["']/i.test(html), "page must not ask to be indexed");
-    assert.ok(html.indexOf("application/ld+json") === -1, "stub must not keep calculator JSON-LD");
   });
 
   page.sources.forEach(function (source) {
@@ -122,10 +108,13 @@ test("robots.txt asks crawlers to stay off the old host", function () {
   assert.ok(!/motorhomewater\.co\.uk/.test(load("sitemap.xml")), "sitemap still lists the old host");
 });
 
-test("root HTML stays in the publish directory so auto-deploy serves the stubs", function () {
+test("publish directory stays the repo root and contains no HTML redirect stubs", function () {
   assert.ok(yaml.indexOf("staticPublishPath: .") !== -1, "publish directory must stay repo root");
-  assert.ok(yaml.indexOf("staticPublishPath: public") === -1, "public/ publish would hide the stubs");
-  assert.ok(!/rm -rf/.test(yaml), "build must not delete the root HTML stubs");
+  assert.ok(yaml.indexOf("staticPublishPath: public") === -1, "do not switch the publish directory in code");
+  assert.ok(!/rm -rf/.test(yaml), "do not hide pages with a build-time delete");
+  pages.forEach(function (page) {
+    assert.ok(!fs.existsSync(path.join(root, page.file)), page.file + " must stay deleted");
+  });
 });
 
 var hubMarkFiles = [

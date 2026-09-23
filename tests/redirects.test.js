@@ -52,15 +52,27 @@ var mapped = {
   "/*": HUB
 };
 
-test("static site publishes repo root so the HTML stubs auto-deploy", function () {
+var htmlPages = [
+  "index.html",
+  "gas.html",
+  "tanks.html",
+  "cassette.html",
+  "bottles.html",
+  "hotwater.html",
+  "winterising.html",
+  "topup.html"
+];
+
+test("static site publishes repo root with no HTML page to shadow a redirect", function () {
   assert.ok(yaml.indexOf("runtime: static") !== -1);
   assert.ok(yaml.indexOf("staticPublishPath: .") !== -1);
   assert.ok(yaml.indexOf("staticPublishPath: public") === -1);
   assert.ok(yaml.indexOf("name: mhwater") !== -1);
-  assert.ok(!/rm -rf/.test(yaml), "do not delete root HTML on build");
-  ["index.html", "gas.html", "cassette.html", "robots.txt"].forEach(function (file) {
-    assert.ok(fs.existsSync(path.join(root, file)), file + " must stay at the publish root");
+  assert.ok(!/rm -rf/.test(yaml), "do not hide pages with a build-time delete");
+  htmlPages.forEach(function (file) {
+    assert.ok(!fs.existsSync(path.join(root, file)), file + " would return 200 and block the redirect");
   });
+  assert.ok(fs.existsSync(path.join(root, "robots.txt")), "robots.txt stays at the publish root");
 });
 
 test("every known calculator path 301s to the matching hub URL", function () {

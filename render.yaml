@@ -5,8 +5,8 @@ services:
     staticPublishPath: .
     # HTTP 301s to the hub. Render applies these from a synced Blueprint or
     # from the mhwater service: Dashboard → Redirects/Rewrites.
-    # A rule is skipped when a file exists at that path. The HTML stubs
-    # answer 200 until they are removed after these rules are saved.
+    # A rule is skipped when a file exists at that path. The HTML pages
+    # are not published, so a saved rule is not answered with HTTP 200.
     # Live service publishes "." with an empty build command. Git deploy
     # does not apply a different publish directory from this file.
     # Hosts: motorhomewater.co.uk and mhwater.onrender.com.
