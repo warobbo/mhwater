@@ -86,11 +86,14 @@ test("HTML pages no longer link to index.html", function () {
   });
 });
 
-test("render.yaml 301s /index.html to /", function () {
+test("render.yaml 301s /index.html to the water hub", function () {
   var yaml = read("render.yaml");
   assert.ok(yaml.indexOf("type: redirect") !== -1, "missing redirect route");
   assert.ok(yaml.indexOf("source: /index.html") !== -1, "missing /index.html source");
-  assert.ok(yaml.indexOf("destination: /") !== -1, "missing / destination");
+  assert.ok(
+    yaml.indexOf("destination: https://motorhometools.co.uk/water/") !== -1,
+    "missing hub destination"
+  );
 });
 
 var guideUrls = [

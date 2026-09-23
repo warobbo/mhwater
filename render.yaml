@@ -1,12 +1,44 @@
+# motorhomewater.co.uk and mhwater.onrender.com are this static service.
+# Redirect rules are HTTP 301. Render ignores a rule when a file exists at
+# that path, so the publish directory is public/ and contains no site pages.
+# The build also removes repo-root files in case the service still publishes ".".
 services:
   - type: web
     runtime: static
     name: mhwater
-    staticPublishPath: .
+    buildCommand: "mkdir -p public && find . -mindepth 1 -maxdepth 1 -name public -prune -o -name .git -prune -o -exec rm -rf {} +"
+    staticPublishPath: public
     routes:
       - type: redirect
+        source: /
+        destination: https://motorhometools.co.uk/water/
+      - type: redirect
         source: /index.html
-        destination: /
+        destination: https://motorhometools.co.uk/water/
+      - type: redirect
+        source: /gas.html
+        destination: https://motorhometools.co.uk/water/gas.html
+      - type: redirect
+        source: /tanks.html
+        destination: https://motorhometools.co.uk/water/tanks.html
+      - type: redirect
+        source: /cassette.html
+        destination: https://motorhometools.co.uk/water/cassette.html
+      - type: redirect
+        source: /bottles.html
+        destination: https://motorhometools.co.uk/water/bottles.html
+      - type: redirect
+        source: /hotwater.html
+        destination: https://motorhometools.co.uk/water/hotwater.html
+      - type: redirect
+        source: /winterising.html
+        destination: https://motorhometools.co.uk/water/winterising.html
+      - type: redirect
+        source: /topup.html
+        destination: https://motorhometools.co.uk/water/topup.html
+      - type: redirect
+        source: /*
+        destination: https://motorhometools.co.uk/water/
     envVars:
       - key: SKIP_INSTALL_DEPS
         value: "true"
