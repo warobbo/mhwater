@@ -2,9 +2,7 @@
 
 A small, mobile-friendly hub of **motorhome water and gas calculators** for UK and EU users.
 
-Later public home: **motorhomewater.co.uk** (water and gas together).
-
-Live (after deploy): [mhwater.onrender.com](https://mhwater.onrender.com)
+**Live domains redirect to the hub.** `https://motorhomewater.co.uk` and `https://mhwater.onrender.com` permanently redirect (HTTP 301) to [https://motorhometools.co.uk/water/](https://motorhometools.co.uk/water/). The calculator source in this repo is no longer what those hosts serve. See [Redirects](#redirects-to-the-hub).
 
 ## Slice 1 — Water usage
 
@@ -135,18 +133,59 @@ node tests/cassette-calc.test.js
 node tests/ui.test.js
 ```
 
+## Redirects to the hub
+
+Both public hosts are this Render static service (`mhwater`):
+
+- `https://motorhomewater.co.uk`
+- `https://mhwater.onrender.com`
+
+`render.yaml` defines Render **redirect** rules. On a static site that action is **HTTP 301**. There is no separate status-code field. Rules apply to every host on the service, including the custom domain and the `onrender.com` URL.
+
+| Request path | 301 Location |
+| --- | --- |
+| `/` and `/index.html` | `https://motorhometools.co.uk/water/` |
+| `/gas.html` | `https://motorhometools.co.uk/water/gas.html` |
+| `/tanks.html` | `https://motorhometools.co.uk/water/tanks.html` |
+| `/cassette.html` | `https://motorhometools.co.uk/water/cassette.html` |
+| `/bottles.html` | `https://motorhometools.co.uk/water/bottles.html` |
+| `/hotwater.html` | `https://motorhometools.co.uk/water/hotwater.html` |
+| `/winterising.html` | `https://motorhometools.co.uk/water/winterising.html` |
+| `/topup.html` | `https://motorhometools.co.uk/water/topup.html` |
+| any other path (`/*`) | `https://motorhometools.co.uk/water/` |
+
+Specific paths are listed above the catch-all so they win. Those hub URLs were checked against the live water tree (each calculator page returns 200; `/water/index.html` already 301s to `/water/`).
+
+Render does **not** apply a redirect when a file exists at the same path. It serves the file with HTTP 200. That is why `/index.html` previously stayed 200 even with a redirect rule. This service therefore publishes `public/`, which has no HTML, assets, `robots.txt`, or `sitemap.xml`. The build command also deletes repo-root files before publish, so a service still set to publish `.` does not keep serving the old pages.
+
+`/.gitkeep` is the only published file. A request for that exact path can return 200. Every normal URL is covered by a redirect rule.
+
+Hash fragments are not sent to the server. A browser that opens `/#weight` usually keeps `#weight` after the 301, which lands on the hub water page’s weight section. Gas and Cassette share links put the trip in the query string (`?adults=2&tripDays=3` and similar). The redirect source is only the path. After deploy, confirm the query string is still on `Location`:
+
+```bash
+curl -sI https://motorhomewater.co.uk/
+curl -sI https://motorhomewater.co.uk/gas.html
+curl -sI https://motorhomewater.co.uk/tanks.html
+curl -sI https://motorhomewater.co.uk/cassette.html
+curl -sI "https://motorhomewater.co.uk/gas.html?adults=2&tripDays=3"
+curl -sI https://mhwater.onrender.com/
+```
+
+Expect `301` and a `Location` of the hub URL in the table (plus the original query string, if Render appends it). HTTP on these hosts is already redirected to HTTPS by Render before these rules run.
+
+This repo does not change `motorhometools.co.uk`.
+
 ## Deploy on Render (static site)
 
 1. Push this repository to GitHub.
-2. In the Render dashboard, choose **New → Static Site**.
-3. Connect the repo and branch (`main` once merged).
-4. Settings:
-   - **Build Command:** leave empty
-   - **Publish Directory:** `.`
-5. Optional environment variable: `SKIP_INSTALL_DEPS=true` (there are no Node dependencies to install).
-6. Deploy.
+2. The existing `mhwater` static site auto-deploys from `main` using `render.yaml`.
+3. Settings that must match the Blueprint:
+   - **Build Command:** `mkdir -p public && find . -mindepth 1 -maxdepth 1 -name public -prune -o -name .git -prune -o -exec rm -rf {} +`
+   - **Publish Directory:** `public`
+   - **Redirects:** the routes in `render.yaml` (specific paths first, then `/*`)
+4. Environment variable: `SKIP_INSTALL_DEPS=true` (there are no Node dependencies to install).
 
-A `render.yaml` Blueprint is included with the same static publish path. After you have a live domain, add that host to `sitemap.xml` (`<loc>`) and optionally a `Sitemap:` line in `robots.txt`. Do not use a placeholder domain.
+If a dashboard override still publishes `.` and still has the old pages on disk, redirect rules will not run for those paths. The build command above is what clears them. Do not add an `index.html` under `public/`; that file would be served at `/` instead of the 301.
 
 ## Persistence
 
