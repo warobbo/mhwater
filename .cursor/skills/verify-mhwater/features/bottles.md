@@ -36,6 +36,8 @@ There is no formula to derive a number from. The page body is hub HTML, copied a
 
 `evidence/coming-soon.json` entry for `bottles.html`. `pass` is true when the status is 200 and those three strings are in the HTML.
 
+Authoring run `2026-10-12T02-34-18-261Z` recorded `pass: true` for `bottles.html` (status 200, heading and paragraph present).
+
 The redirect itself is the `/bottles.html` row in [redirects](./redirects.md).
 
 ## Gotchas

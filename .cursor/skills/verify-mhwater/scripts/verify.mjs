@@ -986,6 +986,9 @@ function sleep(ms) {
 export async function cleanup() {
   const state = readState();
   if (!state) {
+    for (const name of ["publish.log", "ui.log"]) {
+      fs.rmSync(path.join(STATE_DIR, name), { force: true });
+    }
     log("cleanup: no state file, nothing to stop");
     return;
   }
@@ -1015,6 +1018,9 @@ export async function cleanup() {
     fs.rmSync(path.dirname(state.uiRoot), { recursive: true, force: true });
   }
   fs.rmSync(STATE_PATH, { force: true });
+  for (const name of ["publish.log", "ui.log"]) {
+    fs.rmSync(path.join(STATE_DIR, name), { force: true });
+  }
   const chromeDirs = fs.existsSync(STATE_DIR) ? fs.readdirSync(STATE_DIR).filter((name) => name.startsWith("chrome-")) : [];
   for (const name of chromeDirs) {
     fs.rmSync(path.join(STATE_DIR, name), { recursive: true, force: true });

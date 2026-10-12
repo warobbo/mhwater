@@ -1,0 +1,67 @@
+{
+  "feature": "tanks",
+  "caseId": "tanks-typical-uk",
+  "url": "http://127.0.0.1:45809/tanks.html",
+  "title": "Motorhome tank planner | fresh, grey and cassette",
+  "action": "click button[aria-label=\"Typical UK van (100 L fresh · cassette)\"]",
+  "input": {
+    "water": {
+      "adults": 2,
+      "children": 0,
+      "tripDays": 2,
+      "showersPerPersonPerDay": 0.5,
+      "showerStyle": "short",
+      "showerMinutes": 1.5,
+      "showerLitres": 6,
+      "washUpLitresPerDay": 5,
+      "laundryEnabled": false,
+      "laundryLitresPerLoad": 15,
+      "laundryLoadsPerTrip": 0,
+      "drinkCookLitresPerPersonPerDay": 2.5,
+      "cassetteEnabled": true,
+      "cassetteFlushesPerPersonPerDay": 5,
+      "cassetteLitresPerFlush": 0.25,
+      "freshTankLitres": 100,
+      "activePreset": "defaults"
+    },
+    "plan": {
+      "tripDays": 3,
+      "freshTankLitres": 100,
+      "greyTankLitres": 90,
+      "blackKind": "cassette",
+      "blackTankLitres": 19,
+      "freshStartPercent": 100,
+      "greyStartPercent": 0,
+      "blackStartPercent": 0,
+      "activePreset": "typicalUk"
+    }
+  },
+  "derivation": {
+    "freshDaily": 18.5,
+    "greyDaily": 11,
+    "blackDaily": 2.5,
+    "daysFresh": 5.405405405405405,
+    "daysGrey": 8.181818181818182,
+    "daysBlack": 7.6,
+    "limiter": "fresh",
+    "moduleAgrees": true
+  },
+  "expected": {
+    "#stretch-days": "5.4",
+    "#fresh-days": "5.4",
+    "#grey-days": "8.2",
+    "#black-days": "7.6",
+    "#stretch-hint": "Fresh tank runs dry first, after about 5.4 days. That is the limit of this stretch.",
+    "#water-summary": "2 adults · 18.5 L fresh a day · 11 L grey a day · 2.5 L into the cassette a day. Change showers and habits on the Water page."
+  },
+  "actual": {
+    "#stretch-days": "5.4",
+    "#fresh-days": "5.4",
+    "#grey-days": "8.2",
+    "#black-days": "7.6",
+    "#stretch-hint": "Fresh tank runs dry first, after about 5.4 days. That is the limit of this stretch.",
+    "#water-summary": "2 adults · 18.5 L fresh a day · 11 L grey a day · 2.5 L into the cassette a day. Change showers and habits on the Water page."
+  },
+  "mismatches": [],
+  "pass": true
+}

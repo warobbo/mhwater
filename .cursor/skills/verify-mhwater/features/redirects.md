@@ -48,6 +48,8 @@ INPUT / EXPECTED / ACTUAL for the redirect table. These are status and `Location
 
 - **Live hosts.** The same command also requests `https://motorhomewater.co.uk/`, `https://mhwater.onrender.com/`, and the gas and unknown examples on `https://motorhomewater.co.uk`. ACTUAL status and `Location` are the `live` array in `evidence/redirects.json`. `matchesCheckout` records whether the deployed `/assets/calc.js` body equals this working tree. A mismatch means production is not this commit; it does not by itself change the local UI drive, which uses the working tree.
 
+Authoring run `2026-10-12T02-34-18-261Z` recorded every local and live row as `pass: true`. Live `https://motorhomewater.co.uk/assets/calc.js` was HTTP 200 and `matchesCheckout` was true.
+
 ## Gotchas
 
 - Adding `index.html` or any other page file at the repo root makes Render return 200 for that path and skip the redirect. `tests/redirects.test.js` and `tests/seo.test.js` forbid those files. Doctor fails if they exist.

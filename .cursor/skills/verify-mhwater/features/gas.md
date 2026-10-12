@@ -66,6 +66,18 @@ The named bottle label is `4.5 kg` plus `Calor butane` from `BOTTLES.butane45`.
 
 `evidence/gas.json` field `actual`, with `gas-before.png`, `gas-after.png`, and `gas.aria.txt`. `pass` is true only when each node matches the table.
 
+Authoring run `2026-10-12T02-34-18-261Z` recorded `pass: true`. The page title was `Motorhome gas / LPG calculator | kg and bottle days`. ACTUAL text:
+
+| Node | ACTUAL text |
+| --- | --- |
+| `#total-trip` | 0.32 |
+| `#total-daily` | 0.16 |
+| `#bottle-days` | 28 |
+| `#bottle-hint` | A 4.5 kg Calor butane lasts about 28 days at this daily use. |
+| `#bottles-needed` | 1 |
+| `#bottles-unit` | bottle |
+| `#bottles-hint` | One 4.5 kg Calor butane covers the trip (rounded up). |
+
 ## Gotchas
 
 - The same kilogram rates are used for butane and propane. This is not an energy-density model (`assets/gas-calc.js` header).

@@ -36,6 +36,8 @@ No formula in this repo, so there is no derived number. The hub HTML says:
 
 `evidence/coming-soon.json` entry for `hotwater.html`.
 
+Authoring run `2026-10-12T02-34-18-261Z` recorded `pass: true` for `hotwater.html` (status 200, heading and paragraph present).
+
 The redirect is the `/hotwater.html` row in [redirects](./redirects.md).
 
 ## Gotchas

@@ -60,7 +60,20 @@ Derived from `calcCassette` in `assets/cassette-calc.js`. Daily waste is heads �
 
 ### ACTUAL
 
-`evidence/cassette.json` field `actual`, with `cassette-before.png`, `cassette-after.png`, and `cassette.aria.txt`.
+`evidence/cassette.json` field `actual`, with `cassette-before.png`, `cassette-after.png`, and `cassette.aria.txt`. `pass` is true only when each node matches the table.
+
+Authoring run `2026-10-12T02-34-18-261Z` recorded `pass: true`. The page title was `Motorhome cassette planner | days between empties`. ACTUAL text:
+
+| Node | ACTUAL text |
+| --- | --- |
+| `#empty-days` | 9 |
+| `#empty-hint` | 18 L of room · 2.0 L / day. |
+| `#waste-daily` | 2.0 |
+| `#waste-daily-hint` | 8 flushes a day · 0.25 L each. |
+| `#waste-trip` | 4.0 |
+| `#empties-needed` | 1 |
+| `#empties-unit` | empty |
+| `#empties-hint` | One empty covers the trip — usually at the end, or when you pass a service point. |
 
 ## Gotchas
 

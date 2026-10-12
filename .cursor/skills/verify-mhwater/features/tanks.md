@@ -63,7 +63,18 @@ Daily litres come from `calcWater` on the default Water profile. Days come from 
 
 ### ACTUAL
 
-`evidence/tanks.json` field `actual`, with `tanks-before.png`, `tanks-after.png`, and `tanks.aria.txt`.
+`evidence/tanks.json` field `actual`, with `tanks-before.png`, `tanks-after.png`, and `tanks.aria.txt`. `pass` is true only when each node matches the table.
+
+Authoring run `2026-10-12T02-34-18-261Z` recorded `pass: true`. The page title was `Motorhome tank planner | fresh, grey and cassette`. ACTUAL text:
+
+| Node | ACTUAL text |
+| --- | --- |
+| `#stretch-days` | 5.4 |
+| `#fresh-days` | 5.4 |
+| `#grey-days` | 8.2 |
+| `#black-days` | 7.6 |
+| `#stretch-hint` | Fresh tank runs dry first, after about 5.4 days. That is the limit of this stretch. |
+| `#water-summary` | 2 adults · 18.5 L fresh a day · 11 L grey a day · 2.5 L into the cassette a day. Change showers and habits on the Water page. |
 
 ## Gotchas
 

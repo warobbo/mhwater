@@ -110,7 +110,7 @@ Exercise the click or the HTTP response a visitor gets. Do not treat `expect.mjs
 .cursor/skills/verify-mhwater/scripts/cleanup.mjs
 ```
 
-This sends `SIGTERM`, then `SIGKILL` if needed, to the publish pid, the UI pid, and any Chrome pid recorded in `/tmp/mhwater-verify/state.json`. It deletes that state file, that run's temp UI directory, and the throwaway Chrome profiles under `/tmp/mhwater-verify/`. It does not kill Chrome or Node by name. It does not delete `.cursor/skills/verify-mhwater/evidence/`.
+This sends `SIGTERM`, then `SIGKILL` if needed, to the publish pid, the UI pid, and any Chrome pid recorded in `/tmp/mhwater-verify/state.json`. It deletes that state file, that run's temp UI directory, `publish.log`, `ui.log`, and the throwaway Chrome profiles under `/tmp/mhwater-verify/`. It does not kill Chrome or Node by name. It does not delete `.cursor/skills/verify-mhwater/evidence/`.
 
 Run cleanup after a failed launch too, so a half-started server is not left on a port. Launch already stops the publish server if the hub HTML copy fails.
 

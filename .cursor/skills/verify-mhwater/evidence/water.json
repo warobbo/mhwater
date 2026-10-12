@@ -1,0 +1,59 @@
+{
+  "feature": "water",
+  "caseId": "water-weekend",
+  "url": "http://127.0.0.1:45809/",
+  "title": "Motorhome water calculator | litres per day & trip",
+  "action": "click button[aria-label=\"Weekend (2 people · 2 days)\"]",
+  "input": {
+    "adults": 2,
+    "children": 0,
+    "tripDays": 2,
+    "showersPerPersonPerDay": 0.5,
+    "showerStyle": "short",
+    "showerMinutes": 1.5,
+    "showerLitres": 6,
+    "washUpLitresPerDay": 5,
+    "laundryEnabled": false,
+    "laundryLitresPerLoad": 15,
+    "laundryLoadsPerTrip": 0,
+    "drinkCookLitresPerPersonPerDay": 2.5,
+    "cassetteEnabled": true,
+    "cassetteFlushesPerPersonPerDay": 4,
+    "cassetteLitresPerFlush": 0.25,
+    "freshTankLitres": 100,
+    "activePreset": "weekend"
+  },
+  "derivation": {
+    "peopleUnits": 2,
+    "heads": 2,
+    "showerDaily": 6,
+    "washDaily": 5,
+    "laundryDaily": 0,
+    "drinkDaily": 5,
+    "cassetteDaily": 2,
+    "freshDaily": 18,
+    "freshTrip": 36,
+    "greyDaily": 11,
+    "greyTrip": 22,
+    "daysUntilEmpty": 5.555555555555555,
+    "moduleAgrees": true
+  },
+  "expected": {
+    "#total-trip": "36",
+    "#total-daily": "18",
+    "#grey-trip": "22",
+    "#grey-daily": "11",
+    "#weight-note": "About 36 kg if you carry the whole trip’s fresh water (1 litre = 1 kg).",
+    "#tank-note": "A full 100 L tank is about 100 kg. At this rate it lasts about 5.6 days before you need a top-up."
+  },
+  "actual": {
+    "#total-trip": "36",
+    "#total-daily": "18",
+    "#grey-trip": "22",
+    "#grey-daily": "11",
+    "#weight-note": "About 36 kg if you carry the whole trip’s fresh water (1 litre = 1 kg).",
+    "#tank-note": "A full 100 L tank is about 100 kg. At this rate it lasts about 5.6 days before you need a top-up."
+  },
+  "mismatches": [],
+  "pass": true
+}

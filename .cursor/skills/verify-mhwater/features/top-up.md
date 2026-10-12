@@ -38,6 +38,8 @@ The 40 in that sentence is published copy, not a result from `assets/calc.js`. D
 
 `evidence/coming-soon.json` entry for `topup.html`.
 
+Authoring run `2026-10-12T02-34-18-261Z` recorded `pass: true` for `topup.html` (status 200, heading and paragraph present).
+
 The redirect is the `/topup.html` row in [redirects](./redirects.md).
 
 ## Gotchas

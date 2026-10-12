@@ -70,7 +70,18 @@ Derived from `calcWater` in `assets/calc.js`. Children use `CHILD_FACTOR` 0.7 fo
 
 ### ACTUAL
 
-The drive writes the text it read into `evidence/water.json` under `actual`, plus `water-before.png`, `water-after.png`, and `water.aria.txt`. ACTUAL matches EXPECTED only when `pass` is true. Do not copy a number from memory if that file is missing.
+The drive writes the text it read into `evidence/water.json` under `actual`, plus `water-before.png`, `water-after.png`, and `water.aria.txt`. `pass` is true only when every node matches EXPECTED.
+
+Authoring run `2026-10-12T02-34-18-261Z` recorded `pass: true`. The page title was `Motorhome water calculator | litres per day & trip`. ACTUAL text:
+
+| Node | ACTUAL text |
+| --- | --- |
+| `#total-trip` | 36 |
+| `#total-daily` | 18 |
+| `#grey-trip` | 22 |
+| `#grey-daily` | 11 |
+| `#weight-note` | About 36 kg if you carry the whole trip’s fresh water (1 litre = 1 kg). |
+| `#tank-note` | A full 100 L tank is about 100 kg. At this rate it lasts about 5.6 days before you need a top-up. |
 
 ## Gotchas
 
