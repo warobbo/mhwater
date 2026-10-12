@@ -63,16 +63,18 @@ var htmlPages = [
   "topup.html"
 ];
 
-test("static site publishes repo root with no HTML page to shadow a redirect", function () {
+test("static site publishes the public allowlist with no HTML page to shadow a redirect", function () {
   assert.ok(yaml.indexOf("runtime: static") !== -1);
-  assert.ok(yaml.indexOf("staticPublishPath: .") !== -1);
-  assert.ok(yaml.indexOf("staticPublishPath: public") === -1);
+  assert.ok(yaml.indexOf("staticPublishPath: public") !== -1);
+  assert.ok(yaml.indexOf("buildCommand: bash scripts/publish-public.sh") !== -1);
+  assert.ok(yaml.indexOf("staticPublishPath: .") === -1);
   assert.ok(yaml.indexOf("name: mhwater") !== -1);
+  assert.ok(/Git deploy does not apply/.test(yaml), "yaml must keep the dashboard warning");
   assert.ok(!/rm -rf/.test(yaml), "do not hide pages with a build-time delete");
   htmlPages.forEach(function (file) {
     assert.ok(!fs.existsSync(path.join(root, file)), file + " would return 200 and block the redirect");
   });
-  assert.ok(fs.existsSync(path.join(root, "robots.txt")), "robots.txt stays at the publish root");
+  assert.ok(fs.existsSync(path.join(root, "robots.txt")), "robots.txt stays in the repo so the allowlist can copy it");
 });
 
 test("every known calculator path 301s to the matching hub URL", function () {

@@ -1,13 +1,13 @@
 # Redirects
 
-A visitor who opens the old motorhome water host is sent to the matching Water hub URL. Files that exist on this host, including `/assets/calc.js`, are downloaded instead of redirected.
+A visitor who opens the old motorhome water host is sent to the matching Water hub URL. Allowlisted files, including `/assets/calc.js`, are downloaded instead of redirected. README, tests, dotfiles, and `.cursor/` are not on that list.
 
 ## Sub-features
 
 - `redirect-home` sends `/` and `/index.html` to the hub Water page.
 - `redirect-tools` sends each known tool or guide path to the same file name on the hub.
 - `redirect-unknown` sends any other path that is not a real file to the hub Water page, and keeps the query string.
-- `redirect-file` serves an existing file, such as `/assets/calc.js` and `/robots.txt`, as HTTP 200.
+- `redirect-file` serves an allowlisted file, such as `/assets/calc.js` and `/robots.txt`, as HTTP 200. `/.gitignore` and `/.cursor/skills/verify-mhwater/SKILL.md` are not files on that server, so they 301 to the hub Water page.
 
 ## How to get to it (user POV)
 
@@ -15,7 +15,7 @@ A visitor who opens the old motorhome water host is sent to the matching Water h
 - Open `https://mhwater.onrender.com/`.
 - Open a tool path on either host, for example `https://motorhomewater.co.uk/gas.html`.
 - Open an unknown path, for example `https://motorhomewater.co.uk/not-a-real-page`.
-- Open a file that is in the repo, for example `https://motorhomewater.co.uk/assets/calc.js`.
+- Open an allowlisted file, for example `https://motorhomewater.co.uk/assets/calc.js`.
 
 The browser then shows the hub page, or the file. This repo has no calculator screen of its own.
 
@@ -54,6 +54,7 @@ Authoring run `2026-10-12T02-34-18-261Z` recorded every local and live row as `p
 
 - Adding `index.html` or any other page file at the repo root makes Render return 200 for that path and skip the redirect. `tests/redirects.test.js` and `tests/seo.test.js` forbid those files. Doctor fails if they exist.
 - The catch-all does not preserve the old path. `/not-a-real-page` lands on the hub Water page, not on a hub path of the same name.
-- `/assets/*` will keep returning 200 while those files stay in the repo. That is the legacy JavaScript, not the hub UI.
-- The local publish server is a stand-in that reads `_redirects`. Doctor also runs `tests/redirects.test.js`, which checks `render.yaml` against the same destinations. Production is still a separate check in `drive redirects`.
+- `/assets/*` returns 200 while those files stay on `scripts/published-files.txt`. That is the legacy JavaScript, not the hub UI.
+- The local publish server is a stand-in that reads `_redirects` and serves `public/`. Doctor also runs `tests/redirects.test.js`, which checks `render.yaml` against the same destinations. Production is still a separate check in `drive redirects`.
+- Live hosts keep returning 200 for `/.gitignore` and `/.cursor/skills/verify-mhwater/SKILL.md` until Dashboard → Settings → Build & Deploy sets Build Command to `bash scripts/publish-public.sh` and Publish Directory to `public`, then a deploy runs. Git deploy does not apply those two settings.
 - Do not point a drive at a publish server you did not start. Launch will not replace one that is already recorded.

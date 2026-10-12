@@ -2,7 +2,7 @@
 
 This directory is the maintained source for verifying what a visitor can do with this repo. Read this index, then use the matching feature file.
 
-This checkout publishes the `mhwater` redirect host (`https://motorhomewater.co.uk`, `https://mhwater.onrender.com`). Calculator HTML is not in the repo. The live pages are on [https://motorhometools.co.uk/water/](https://motorhometools.co.uk/water/). The drives below open a temp copy of that hub shell served with this checkout's `assets/`, so the click runs the JavaScript in the working tree. See the skill's "What this checkout serves" section.
+This checkout publishes the `mhwater` redirect host (`https://motorhomewater.co.uk`, `https://mhwater.onrender.com`). Calculator HTML is not in the repo. The live pages are on [https://motorhometools.co.uk/water/](https://motorhometools.co.uk/water/). The local publish server serves `public/` from the allowlist. The live service still publishes the repo root until its Build Command and Publish Directory change. The drives below open a temp copy of that hub shell served with this checkout's `assets/`, so the click runs the JavaScript in the working tree. See the skill's "What this checkout serves" section.
 
 Update this feature map in the same PR whenever a build changes pages or tools.
 

@@ -4,7 +4,9 @@
  *
  * This checkout is the Render static site `mhwater`. It does not publish the
  * calculator HTML. Page paths 301 to https://motorhometools.co.uk/water/.
- * Files that exist (assets, robots.txt, this skill) are served as HTTP 200.
+ * The local publish server serves public/ from scripts/publish-public.sh.
+ * Allowlisted files (assets, robots.txt, sitemap.xml) are HTTP 200.
+ * Any other path, including this skill and dotfiles, follows _redirects.
  * Calculator drives copy the live hub HTML into a temp directory and serve it
  * with this checkout's assets/, so clicks run the JavaScript in this repo.
  *
@@ -343,7 +345,11 @@ export async function launch() {
   fs.mkdirSync(EVIDENCE, { recursive: true });
   const runId = new Date().toISOString().replace(/[:.]/g, "-");
   log("launch run " + runId);
-  const publish = await spawnServe("redirect", ROOT, runId, "publish.log");
+  const built = spawnSync("bash", ["scripts/publish-public.sh"], { cwd: ROOT, encoding: "utf8" });
+  if (built.status !== 0) {
+    fail("scripts/publish-public.sh failed\n" + (built.stderr || "") + (built.stdout || ""));
+  }
+  const publish = await spawnServe("redirect", path.join(ROOT, "public"), runId, "publish.log");
   let uiRoot;
   let ui;
   try {
@@ -418,8 +424,23 @@ export async function doctor() {
       calcResponse.status === 200 && calcBody === disk,
       "GET /assets/calc.js is 200 and matches this checkout (existing files skip the redirect)"
     ) && good;
-  const missingHtml = HTML_PAGES.filter((file) => fs.existsSync(path.join(ROOT, file)));
+  const missingHtml = HTML_PAGES.filter(
+    (file) => fs.existsSync(path.join(ROOT, file)) || fs.existsSync(path.join(ROOT, "public", file))
+  );
   good = note(missingHtml.length === 0, "calculator HTML is absent from the publish root") && good;
+  const hidden = await fetch("http://127.0.0.1:" + state.publish.port + "/.gitignore", { redirect: "manual" });
+  good =
+    note(
+      hidden.status === 301 && hidden.headers.get("location") === HUB,
+      "GET /.gitignore is 301 because dotfiles are not on the publish allowlist"
+    ) && good;
+  const skillPath = "/.cursor/skills/verify-mhwater/SKILL.md";
+  const skill = await fetch("http://127.0.0.1:" + state.publish.port + skillPath, { redirect: "manual" });
+  good =
+    note(
+      skill.status === 301 && skill.headers.get("location") === HUB,
+      "GET " + skillPath + " is 301 because .cursor is not on the publish allowlist"
+    ) && good;
   const uiPage = await fetch("http://127.0.0.1:" + state.ui.port + "/");
   const uiHtml = await uiPage.text();
   good =
@@ -440,6 +461,8 @@ export async function doctor() {
     good = note(passed, test + " exit " + result.status) && good;
     if (!passed) lines.push(result.stdout + result.stderr);
   }
+  const rebuilt = spawnSync("bash", ["scripts/publish-public.sh"], { cwd: ROOT, encoding: "utf8" });
+  good = note(rebuilt.status === 0, "publish allowlist restored after tests") && good;
   const report = {
     runId: state.runId,
     publish: "http://127.0.0.1:" + state.publish.port + "/",

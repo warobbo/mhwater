@@ -9,9 +9,11 @@ This checkout is the Render static site `mhwater`. It is **not** the live Water 
 
 ## What this checkout serves
 
-- Hosts: `https://motorhomewater.co.uk` and `https://mhwater.onrender.com`. Render service name `mhwater`. Publish directory is the repo root. Build command is empty. `SKIP_INSTALL_DEPS=true`.
-- Page paths 301 to the Water hub. The map is `_redirects` and `render.yaml`. `/` and `/index.html` go to `https://motorhometools.co.uk/water/`. `/gas.html`, `/tanks.html`, `/cassette.html`, `/bottles.html`, `/hotwater.html`, `/winterising.html`, and `/topup.html` go to the same file name under that hub. Any other path with no file goes to `https://motorhometools.co.uk/water/`.
-- A file that exists is HTTP 200 and the redirect rule is skipped. `assets/calc.js` and the other legacy calculator modules, CSS, and icons are still published that way. `robots.txt` is `Disallow: /`. `sitemap.xml` lists no URLs.
+- Hosts: `https://motorhomewater.co.uk` and `https://mhwater.onrender.com`. Render service name `mhwater`. `SKIP_INSTALL_DEPS=true`.
+- The publish set is `public/`, built by `bash scripts/publish-public.sh` from `scripts/published-files.txt`. That list is `robots.txt`, `sitemap.xml`, and `assets/`. README, `render.yaml`, `_redirects`, tests, `scripts/`, dotfiles, and `.cursor/` are not copied.
+- Git deploy does not apply `buildCommand` or `staticPublishPath`. The live service still has an empty Build Command and Publish Directory `.`, so those hosts still return 200 for files outside the allowlist. Both settings have to change together on the mhwater service, Dashboard → Settings → Build & Deploy, then a deploy: Build Command `bash scripts/publish-public.sh`, Publish Directory `public`. This skill does not change that dashboard.
+- Page paths 301 to the Water hub. The map is `_redirects` and `render.yaml`. `/` and `/index.html` go to `https://motorhometools.co.uk/water/`. `/gas.html`, `/tanks.html`, `/cassette.html`, `/bottles.html`, `/hotwater.html`, `/winterising.html`, and `/topup.html` go to the same file name under that hub. Any other path with no published file goes to `https://motorhometools.co.uk/water/`.
+- An allowlisted file is HTTP 200 and the redirect rule is skipped. `assets/calc.js` and the other legacy calculator modules, CSS, and icons are still published that way. `robots.txt` is `Disallow: /`. `sitemap.xml` lists no URLs.
 - The HTML calculators are not in this repo. `index.html`, `gas.html`, `tanks.html`, `cassette.html`, `bottles.html`, `hotwater.html`, `winterising.html`, and `topup.html` were removed so they cannot answer 200 and block the 301. Do not add them back at the publish root.
 - The pages a visitor actually uses are the hub: [https://motorhometools.co.uk/water/](https://motorhometools.co.uk/water/). That UI lives in the `motorhometools` repo under `water/`. The hub publishes minified `water/assets/*.js`. Those files are not byte-for-byte copies of this repo. On 12 Oct 2026, `calcWater`, `calcGas`, `calcTanks`, and `calcCassette` on the hub returned the same raw results as this checkout for the Weekend, Weekend summer, Typical UK van, and Weekend couple presets. A later edit here does not change the hub until that repo is updated. `drive` copies the hub HTML into a temp directory and serves it with **this checkout's** `assets/`, so a click runs the JavaScript under review.
 
@@ -31,7 +33,7 @@ Launch refuses to start if a verification server from this skill is already runn
 
 What it starts, bound to `127.0.0.1` on a free port (printed when ready):
 
-1. A publish server for this repo. It serves an existing file as 200 and otherwise applies `_redirects` (301, query string kept, catch-all `/*` drops the path). This is the local stand-in for Render. It is not the production host.
+1. A publish server whose root is `public/` after `scripts/publish-public.sh`. It serves an allowlisted file as 200 and otherwise applies `_redirects` (301, query string kept, catch-all `/*` drops the path). This is the local stand-in for the intended Render publish directory. It is not the production host, and production still publishes the repo root until the two Dashboard settings above change.
 2. A UI server whose root is a temp copy: live hub HTML fetched into `/tmp/mhwater-verify/<run-id>/ui/`, plus this checkout's `assets/`. That directory is scratch. It is not committed and it is not the publish root.
 
 Ready means both ports answer and `GET /robots.txt` on the publish port returns 200 with `Disallow`. State is `/tmp/mhwater-verify/state.json` (`runId`, pids, ports). Launch needs network once, to copy the hub HTML. `expect.mjs` does not.
@@ -50,9 +52,11 @@ Run this before driving, and again whenever a click looks wrong. It is read-only
 - `GET /` on the publish port is 301 to `https://motorhometools.co.uk/water/` and the response header `X-Mhwater-Verify` is this run id.
 - `GET /gas.html` is 301 to `https://motorhometools.co.uk/water/gas.html`.
 - `GET /assets/calc.js` is 200 and the body matches `assets/calc.js` on disk.
-- The eight HTML page names above are absent from the repo root.
+- `GET /.gitignore` and `GET /.cursor/skills/verify-mhwater/SKILL.md` are 301 to `https://motorhometools.co.uk/water/`.
+- The eight HTML page names above are absent from the repo root and from `public/`.
 - `GET /` on the UI port is 200 and contains `<h1>Fresh water usage calculator</h1>`, and its `assets/calc.js` matches this checkout.
 - `node tests/redirects.test.js`, `node tests/seo.test.js`, and `node tests/calc.test.js` exit 0.
+- `scripts/publish-public.sh` is run again after those tests, so `public/` is still the server root for a later drive. The SEO test rebuilds that directory while it checks the allowlist.
 
 A failure means this instance is not worth driving. The report is `evidence/doctor.json`. Doctor does not kill a bad server; run cleanup yourself.
 

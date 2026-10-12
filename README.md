@@ -26,9 +26,14 @@ Do not add those HTML files back. A file at the path answers 200 and blocks the 
 
 The existing `mhwater` static site auto-deploys from `main`.
 
-- **Build Command:** empty
-- **Publish Directory:** `.`
-- Environment variable: `SKIP_INSTALL_DEPS=true`
+`scripts/publish-public.sh` copies `scripts/published-files.txt` into `public/`. That allowlist is `robots.txt`, `sitemap.xml`, and `assets/`. README, this Blueprint, tests, and dotfiles are not copied.
+
+Git deploy does not apply the build command or publish directory in [`render.yaml`](render.yaml). The live service still publishes the repo root until both Dashboard settings are changed together, then a deploy is run:
+
+- **Build Command:** `bash scripts/publish-public.sh`
+- **Publish Directory:** `public`
+
+Service: `mhwater`, Dashboard → Settings → Build & Deploy. Environment variable: `SKIP_INSTALL_DEPS=true`.
 
 `robots.txt` is `Disallow: /`. `sitemap.xml` lists no URLs.
 

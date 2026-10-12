@@ -1,19 +1,22 @@
 {
-  "runId": "2026-10-12T02-34-18-261Z",
-  "publish": "http://127.0.0.1:34681/",
-  "ui": "http://127.0.0.1:45809/",
+  "runId": "2026-10-12T20-55-03-356Z",
+  "publish": "http://127.0.0.1:42875/",
+  "ui": "http://127.0.0.1:42385/",
   "worthDriving": true,
   "checks": [
-    "ok  publish pid 3427 is running",
-    "ok  ui pid 3438 is running",
-    "ok  GET / on publish is 301 to https://motorhometools.co.uk/water/ from run 2026-10-12T02-34-18-261Z",
+    "ok  publish pid 3737 is running",
+    "ok  ui pid 3748 is running",
+    "ok  GET / on publish is 301 to https://motorhometools.co.uk/water/ from run 2026-10-12T20-55-03-356Z",
     "ok  GET /gas.html on publish is 301 to https://motorhometools.co.uk/water/gas.html",
     "ok  GET /assets/calc.js is 200 and matches this checkout (existing files skip the redirect)",
     "ok  calculator HTML is absent from the publish root",
+    "ok  GET /.gitignore is 301 because dotfiles are not on the publish allowlist",
+    "ok  GET /.cursor/skills/verify-mhwater/SKILL.md is 301 because .cursor is not on the publish allowlist",
     "ok  UI server returns the Water page shell with heading Fresh water usage calculator",
     "ok  UI server calc.js matches this checkout, not a different copy",
     "ok  tests/redirects.test.js exit 0",
     "ok  tests/seo.test.js exit 0",
-    "ok  tests/calc.test.js exit 0"
+    "ok  tests/calc.test.js exit 0",
+    "ok  publish allowlist restored after tests"
   ]
 }

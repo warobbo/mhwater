@@ -108,12 +108,65 @@ test("robots.txt asks crawlers to stay off the old host", function () {
   assert.ok(!/motorhomewater\.co\.uk/.test(load("sitemap.xml")), "sitemap still lists the old host");
 });
 
-test("publish directory stays the repo root and contains no HTML redirect stubs", function () {
-  assert.ok(yaml.indexOf("staticPublishPath: .") !== -1, "publish directory must stay repo root");
-  assert.ok(yaml.indexOf("staticPublishPath: public") === -1, "do not switch the publish directory in code");
+test("publish directory is the public allowlist and contains no HTML redirect stubs", function () {
+  assert.ok(yaml.indexOf("staticPublishPath: public") !== -1, "publish directory must be public");
+  assert.ok(yaml.indexOf("staticPublishPath: .") === -1, "do not publish the repo root");
+  assert.ok(yaml.indexOf("buildCommand: bash scripts/publish-public.sh") !== -1);
   assert.ok(!/rm -rf/.test(yaml), "do not hide pages with a build-time delete");
   pages.forEach(function (page) {
     assert.ok(!fs.existsSync(path.join(root, page.file)), page.file + " must stay deleted");
+  });
+});
+
+test("publish script copies only the allowlist and no hidden paths", function () {
+  var spawn = require("child_process").spawnSync;
+  var pub = path.join(root, "public");
+  fs.rmSync(pub, { recursive: true, force: true });
+  var result = spawn("bash", ["scripts/publish-public.sh"], { cwd: root, encoding: "utf8" });
+  assert.strictEqual(result.status, 0, (result.stderr || "") + (result.stdout || ""));
+  var list = fs
+    .readFileSync(path.join(root, "scripts", "published-files.txt"), "utf8")
+    .split(/\n/)
+    .map(function (line) {
+      return line.trim();
+    })
+    .filter(function (line) {
+      return line && line.charAt(0) !== "#";
+    });
+  function walk(dir, acc) {
+    fs.readdirSync(dir).forEach(function (name) {
+      assert.ok(name.charAt(0) !== ".", "hidden path in publish tree: " + name);
+      var full = path.join(dir, name);
+      if (fs.statSync(full).isDirectory()) walk(full, acc);
+      else acc.push(path.relative(pub, full).split(path.sep).join("/"));
+    });
+  }
+  var found = [];
+  walk(pub, found);
+  found.sort();
+  var expect = list.slice().sort();
+  assert.deepStrictEqual(found, expect);
+  list.forEach(function (rel) {
+    assert.ok(rel.charAt(0) !== ".", rel + " is hidden");
+    assert.ok(rel.indexOf("/.") === -1, rel + " has a hidden segment");
+    assert.ok(
+      fs.readFileSync(path.join(pub, rel)).equals(fs.readFileSync(path.join(root, rel))),
+      rel + " in public/ does not match the source"
+    );
+  });
+  ["robots.txt", "sitemap.xml", "assets/calc.js"].forEach(function (rel) {
+    assert.ok(list.indexOf(rel) !== -1, "allowlist missing " + rel);
+  });
+  ["README.md", "render.yaml", "_redirects", ".gitignore", "tests/seo.test.js", "scripts/publish-public.sh"].forEach(function (rel) {
+    assert.ok(list.indexOf(rel) === -1, rel + " must not be published");
+    assert.ok(!fs.existsSync(path.join(pub, rel)), rel + " was published");
+  });
+  assert.ok(!fs.existsSync(path.join(pub, ".gitignore")), ".gitignore was published");
+  assert.ok(!fs.existsSync(path.join(pub, ".cursor")), ".cursor was published");
+  var email = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
+  found.forEach(function (rel) {
+    var text = fs.readFileSync(path.join(pub, rel));
+    assert.ok(!email.test(text.toString("utf8")), rel + " contains an email address");
   });
 });
 
