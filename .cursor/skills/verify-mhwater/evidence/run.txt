@@ -1,0 +1,24 @@
+launch run 2026-10-12T02-34-18-261Z
+publish http://127.0.0.1:34681/
+ui http://127.0.0.1:45809/
+state /tmp/mhwater-verify/state.json
+ok  publish pid 3427 is running
+ok  ui pid 3438 is running
+ok  GET / on publish is 301 to https://motorhometools.co.uk/water/ from run 2026-10-12T02-34-18-261Z
+ok  GET /gas.html on publish is 301 to https://motorhometools.co.uk/water/gas.html
+ok  GET /assets/calc.js is 200 and matches this checkout (existing files skip the redirect)
+ok  calculator HTML is absent from the publish root
+ok  UI server returns the Water page shell with heading Fresh water usage calculator
+ok  UI server calc.js matches this checkout, not a different copy
+ok  tests/redirects.test.js exit 0
+ok  tests/seo.test.js exit 0
+ok  tests/calc.test.js exit 0
+doctor ok
+drive water ok title=Motorhome water calculator | litres per day & trip
+drive redirects ok
+drive gas ok title=Motorhome gas / LPG calculator | kg and bottle days
+drive tanks ok title=Motorhome tank planner | fresh, grey and cassette
+drive cassette ok title=Motorhome cassette planner | days between empties
+drive coming-soon ok
+cleanup stopped run 2026-10-12T02-34-18-261Z. Evidence left in /workspace/.cursor/skills/verify-mhwater/evidence
+cleanup: no state file, nothing to stop

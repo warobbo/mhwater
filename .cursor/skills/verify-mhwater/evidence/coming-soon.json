@@ -1,0 +1,73 @@
+{
+  "feature": "coming-soon",
+  "pages": [
+    {
+      "file": "bottles.html",
+      "input": "Open /bottles.html on the UI server (hub shell copied at launch).",
+      "expected": {
+        "h1": "Gas bottle / cylinder picker",
+        "h2": "Coming soon",
+        "paragraph": "This page will help you pick a cylinder size from the gas usage estimate. It is not built yet."
+      },
+      "actual": {
+        "status": 200,
+        "h1": "Gas bottle / cylinder picker",
+        "comingSoon": true,
+        "paragraph": true
+      },
+      "pass": true,
+      "whyNoFormula": "These pages have no calculator module in assets/. The visible copy is the hub HTML, not a number from a formula."
+    },
+    {
+      "file": "hotwater.html",
+      "input": "Open /hotwater.html on the UI server (hub shell copied at launch).",
+      "expected": {
+        "h1": "Hot water (gas vs electric)",
+        "h2": "Coming soon",
+        "paragraph": "This page will show a simple gas-versus-electric choice for showers and washing up. It is not built yet."
+      },
+      "actual": {
+        "status": 200,
+        "h1": "Hot water (gas vs electric)",
+        "comingSoon": true,
+        "paragraph": true
+      },
+      "pass": true,
+      "whyNoFormula": "These pages have no calculator module in assets/. The visible copy is the hub HTML, not a number from a formula."
+    },
+    {
+      "file": "winterising.html",
+      "input": "Open /winterising.html on the UI server (hub shell copied at launch).",
+      "expected": {
+        "h1": "Winterising volume",
+        "h2": "Coming soon",
+        "paragraph": "This page will help with a winter lay-up volume check. It is not built yet."
+      },
+      "actual": {
+        "status": 200,
+        "h1": "Winterising volume",
+        "comingSoon": true,
+        "paragraph": true
+      },
+      "pass": true,
+      "whyNoFormula": "These pages have no calculator module in assets/. The visible copy is the hub HTML, not a number from a formula."
+    },
+    {
+      "file": "topup.html",
+      "input": "Open /topup.html on the UI server (hub shell copied at launch).",
+      "expected": {
+        "h1": "Top-up / Aquaroll planner",
+        "h2": "Coming soon",
+        "paragraph": "This page will turn daily fresh use into fill-ups of 40 L Aquarolls or other containers. It is not built yet."
+      },
+      "actual": {
+        "status": 200,
+        "h1": "Top-up / Aquaroll planner",
+        "comingSoon": true,
+        "paragraph": true
+      },
+      "pass": true,
+      "whyNoFormula": "These pages have no calculator module in assets/. The visible copy is the hub HTML, not a number from a formula."
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "feature": "cassette",
+  "caseId": "cassette-weekend-couple",
+  "url": "http://127.0.0.1:45809/cassette.html",
+  "title": "Motorhome cassette planner | days between empties",
+  "action": "click button[aria-label=\"Weekend couple (2 people · 18 L)\"]",
+  "input": {
+    "adults": 2,
+    "children": 0,
+    "tripDays": 2,
+    "blackKind": "cassette",
+    "blackTankLitres": 18,
+    "flushesPerPersonPerDay": 4,
+    "litresPerFlush": 0.25,
+    "startPercent": 0,
+    "activePreset": "weekendCouple"
+  },
+  "derivation": {
+    "heads": 2,
+    "wasteDaily": 2,
+    "wasteTrip": 4,
+    "usable": 18,
+    "daysUntilEmpty": 9,
+    "emptiesNeeded": 1,
+    "moduleAgrees": true
+  },
+  "expected": {
+    "#empty-days": "9",
+    "#empty-hint": "18 L of room · 2.0 L / day.",
+    "#waste-daily": "2.0",
+    "#waste-daily-hint": "8 flushes a day · 0.25 L each.",
+    "#waste-trip": "4.0",
+    "#empties-needed": "1",
+    "#empties-unit": "empty",
+    "#empties-hint": "One empty covers the trip — usually at the end, or when you pass a service point."
+  },
+  "actual": {
+    "#empty-days": "9",
+    "#empty-hint": "18 L of room · 2.0 L / day.",
+    "#waste-daily": "2.0",
+    "#waste-daily-hint": "8 flushes a day · 0.25 L each.",
+    "#waste-trip": "4.0",
+    "#empties-needed": "1",
+    "#empties-unit": "empty",
+    "#empties-hint": "One empty covers the trip — usually at the end, or when you pass a service point."
+  },
+  "mismatches": [],
+  "pass": true
+}

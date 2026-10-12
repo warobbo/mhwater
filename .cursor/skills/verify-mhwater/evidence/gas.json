@@ -1,0 +1,59 @@
+{
+  "feature": "gas",
+  "caseId": "gas-weekend-summer",
+  "url": "http://127.0.0.1:45809/gas.html",
+  "title": "Motorhome gas / LPG calculator | kg and bottle days",
+  "action": "click button[aria-label=\"Weekend summer (cooking only · 2 days)\"]",
+  "input": {
+    "adults": 2,
+    "children": 0,
+    "tripDays": 2,
+    "season": "summer",
+    "mealsPerDay": 2,
+    "cookingStyle": "normal",
+    "heatingLevel": "off",
+    "heatingHours": 0,
+    "fridgeGasEnabled": false,
+    "fridgeHoursPerDay": 24,
+    "boilerEnabled": false,
+    "boilerLevel": "normal",
+    "boilerHours": 1.5,
+    "gasType": "butane",
+    "bottleId": "butane45",
+    "bottleKg": 4.5,
+    "activePreset": "weekendSummer"
+  },
+  "derivation": {
+    "peopleUnits": 2,
+    "cookRate": 0.04,
+    "cookDaily": 0.16,
+    "heatDaily": 0,
+    "fridgeDaily": 0,
+    "boilerDaily": 0,
+    "dailyKg": 0.16,
+    "tripKg": 0.32,
+    "bottleDays": 28.125,
+    "bottlesNeeded": 1,
+    "moduleAgrees": true
+  },
+  "expected": {
+    "#total-trip": "0.32",
+    "#total-daily": "0.16",
+    "#bottle-days": "28",
+    "#bottle-hint": "A 4.5 kg Calor butane lasts about 28 days at this daily use.",
+    "#bottles-needed": "1",
+    "#bottles-unit": "bottle",
+    "#bottles-hint": "One 4.5 kg Calor butane covers the trip (rounded up)."
+  },
+  "actual": {
+    "#total-trip": "0.32",
+    "#total-daily": "0.16",
+    "#bottle-days": "28",
+    "#bottle-hint": "A 4.5 kg Calor butane lasts about 28 days at this daily use.",
+    "#bottles-needed": "1",
+    "#bottles-unit": "bottle",
+    "#bottles-hint": "One 4.5 kg Calor butane covers the trip (rounded up)."
+  },
+  "mismatches": [],
+  "pass": true
+}
