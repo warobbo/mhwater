@@ -7,13 +7,13 @@ description: Launch, check, drive, and debug the mhwater static site and its Wat
 
 This checkout is the Render static site `mhwater`. It is **not** the live Water calculator, and it is **not** only a leftover copy with no public role.
 
-What it serves today:
+## What this checkout serves
 
 - Hosts: `https://motorhomewater.co.uk` and `https://mhwater.onrender.com`. Render service name `mhwater`. Publish directory is the repo root. Build command is empty. `SKIP_INSTALL_DEPS=true`.
 - Page paths 301 to the Water hub. The map is `_redirects` and `render.yaml`. `/` and `/index.html` go to `https://motorhometools.co.uk/water/`. `/gas.html`, `/tanks.html`, `/cassette.html`, `/bottles.html`, `/hotwater.html`, `/winterising.html`, and `/topup.html` go to the same file name under that hub. Any other path with no file goes to `https://motorhometools.co.uk/water/`.
 - A file that exists is HTTP 200 and the redirect rule is skipped. `assets/calc.js` and the other legacy calculator modules, CSS, and icons are still published that way. `robots.txt` is `Disallow: /`. `sitemap.xml` lists no URLs.
 - The HTML calculators are not in this repo. `index.html`, `gas.html`, `tanks.html`, `cassette.html`, `bottles.html`, `hotwater.html`, `winterising.html`, and `topup.html` were removed so they cannot answer 200 and block the 301. Do not add them back at the publish root.
-- The pages a visitor actually uses are the hub: [https://motorhometools.co.uk/water/](https://motorhometools.co.uk/water/). That UI lives in the `motorhometools` repo under `water/`. When this skill was written, `assets/*.js` in this repo matched those hub blobs. A later edit here does not change the hub until that repo is updated. `drive` copies the hub HTML into a temp directory and serves it with **this checkout's** `assets/`, so a click runs the JavaScript under review.
+- The pages a visitor actually uses are the hub: [https://motorhometools.co.uk/water/](https://motorhometools.co.uk/water/). That UI lives in the `motorhometools` repo under `water/`. The hub publishes minified `water/assets/*.js`. Those files are not byte-for-byte copies of this repo. On 12 Oct 2026, `calcWater`, `calcGas`, `calcTanks`, and `calcCassette` on the hub returned the same raw results as this checkout for the Weekend, Weekend summer, Typical UK van, and Weekend couple presets. A later edit here does not change the hub until that repo is updated. `drive` copies the hub HTML into a temp directory and serves it with **this checkout's** `assets/`, so a click runs the JavaScript under review.
 
 Update this feature map in the same PR whenever a build changes pages or tools.
 
