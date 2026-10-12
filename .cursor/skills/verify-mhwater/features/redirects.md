@@ -56,5 +56,5 @@ Authoring run `2026-10-12T02-34-18-261Z` recorded every local and live row as `p
 - The catch-all does not preserve the old path. `/not-a-real-page` lands on the hub Water page, not on a hub path of the same name.
 - `/assets/*` returns 200 while those files stay on `scripts/published-files.txt`. That is the legacy JavaScript, not the hub UI.
 - The local publish server is a stand-in that reads `_redirects` and serves `public/`. Doctor also runs `tests/redirects.test.js`, which checks `render.yaml` against the same destinations. Production is still a separate check in `drive redirects`.
-- Live hosts keep returning 200 for `/.gitignore` and `/.cursor/skills/verify-mhwater/SKILL.md` until Dashboard → Settings → Build & Deploy sets Build Command to `bash scripts/publish-public.sh` and Publish Directory to `public`, then a deploy runs. Git deploy does not apply those two settings.
+- Live hosts return 301 for `/.gitignore` and `/.cursor/skills/verify-mhwater/SKILL.md`. Dashboard → Settings → Build & Deploy is Build Command `bash scripts/publish-public.sh` and Publish Directory `public`. Git deploy does not apply those two settings from `render.yaml`; the Dashboard is what the hosts use.
 - Do not point a drive at a publish server you did not start. Launch will not replace one that is already recorded.

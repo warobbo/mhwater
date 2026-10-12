@@ -12,13 +12,12 @@ services:
     # A rule is skipped when a file exists at that path. The HTML pages
     # are not published, so a saved rule is not answered with HTTP 200.
     # Git deploy does not apply this build command or publish directory.
-    # The live service still has an empty Build Command and Publish
-    # Directory `.` until both are set on the mhwater static site:
+    # The live mhwater service already has both Dashboard settings:
     # Dashboard → Settings → Build & Deploy → Build Command
     #   bash scripts/publish-public.sh
     # Dashboard → Settings → Build & Deploy → Publish Directory
     #   public
-    # Set both, then deploy. Publish Directory alone publishes nothing
+    # Keep them together. Publish Directory alone publishes nothing
     # useful, because public/ is not committed.
     # Hosts: motorhomewater.co.uk and mhwater.onrender.com.
     routes:
