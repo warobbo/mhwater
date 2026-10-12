@@ -1,12 +1,12 @@
 {
-  "runId": "2026-10-12T20-55-03-356Z",
-  "publish": "http://127.0.0.1:42875/",
-  "ui": "http://127.0.0.1:42385/",
+  "runId": "2026-10-12T21-01-14-912Z",
+  "publish": "http://127.0.0.1:43153/",
+  "ui": "http://127.0.0.1:34961/",
   "worthDriving": true,
   "checks": [
-    "ok  publish pid 3737 is running",
-    "ok  ui pid 3748 is running",
-    "ok  GET / on publish is 301 to https://motorhometools.co.uk/water/ from run 2026-10-12T20-55-03-356Z",
+    "ok  publish pid 4711 is running",
+    "ok  ui pid 4722 is running",
+    "ok  GET / on publish is 301 to https://motorhometools.co.uk/water/ from run 2026-10-12T21-01-14-912Z",
     "ok  GET /gas.html on publish is 301 to https://motorhometools.co.uk/water/gas.html",
     "ok  GET /assets/calc.js is 200 and matches this checkout (existing files skip the redirect)",
     "ok  calculator HTML is absent from the publish root",

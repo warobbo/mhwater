@@ -28,7 +28,7 @@ The existing `mhwater` static site auto-deploys from `main`.
 
 `scripts/publish-public.sh` copies `scripts/published-files.txt` into `public/`. That allowlist is `robots.txt`, `sitemap.xml`, and `assets/`. README, this Blueprint, tests, and dotfiles are not copied.
 
-Git deploy does not apply the build command or publish directory in [`render.yaml`](render.yaml). The live service still publishes the repo root until both Dashboard settings are changed together, then a deploy is run:
+Git deploy does not apply the build command or publish directory in [`render.yaml`](render.yaml). The live service already has both Dashboard settings:
 
 - **Build Command:** `bash scripts/publish-public.sh`
 - **Publish Directory:** `public`
