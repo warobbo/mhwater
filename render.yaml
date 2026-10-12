@@ -2,13 +2,24 @@ services:
   - type: web
     runtime: static
     name: mhwater
-    staticPublishPath: .
+    # public/ is the only directory that may be served. The build copies
+    # scripts/published-files.txt and nothing else, so dotfiles and .cursor/
+    # are not resources and the catch-all 301 applies.
+    buildCommand: bash scripts/publish-public.sh
+    staticPublishPath: public
     # HTTP 301s to the hub. Render applies these from a synced Blueprint or
     # from the mhwater service: Dashboard → Redirects/Rewrites.
     # A rule is skipped when a file exists at that path. The HTML pages
     # are not published, so a saved rule is not answered with HTTP 200.
-    # Live service publishes "." with an empty build command. Git deploy
-    # does not apply a different publish directory from this file.
+    # Git deploy does not apply this build command or publish directory.
+    # The live service still has an empty Build Command and Publish
+    # Directory `.` until both are set on the mhwater static site:
+    # Dashboard → Settings → Build & Deploy → Build Command
+    #   bash scripts/publish-public.sh
+    # Dashboard → Settings → Build & Deploy → Publish Directory
+    #   public
+    # Set both, then deploy. Publish Directory alone publishes nothing
+    # useful, because public/ is not committed.
     # Hosts: motorhomewater.co.uk and mhwater.onrender.com.
     routes:
       - type: redirect
