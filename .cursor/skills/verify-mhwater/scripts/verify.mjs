@@ -76,13 +76,13 @@ function log(line) {
   const text = String(line);
   console.log(text);
   fs.mkdirSync(EVIDENCE, { recursive: true });
-  fs.appendFileSync(path.join(EVIDENCE, "run.log"), text + "\n");
+  fs.appendFileSync(path.join(EVIDENCE, "run.txt"), text + "\n");
 }
 
 function fail(message) {
   console.error(message);
   fs.mkdirSync(EVIDENCE, { recursive: true });
-  fs.appendFileSync(path.join(EVIDENCE, "run.log"), "FAIL " + message + "\n");
+  fs.appendFileSync(path.join(EVIDENCE, "run.txt"), "FAIL " + message + "\n");
   const error = new Error(message);
   error.alreadyReported = true;
   throw error;

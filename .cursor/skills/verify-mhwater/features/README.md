@@ -6,6 +6,8 @@ This checkout publishes the `mhwater` redirect host (`https://motorhomewater.co.
 
 Update this feature map in the same PR whenever a build changes pages or tools.
 
+A weekly maintain pass runs on Mondays, as part of Freddie the Font2's routine. It edits only `.cursor/skills/verify-mhwater/`, opens at most one PR through the review loop, and stays quiet unless blocked.
+
 ## Baseline preconditions
 
 - Run `.cursor/skills/verify-mhwater/scripts/launch.mjs` and then `.cursor/skills/verify-mhwater/scripts/doctor.mjs`. Require `worthDriving: true` in `evidence/doctor.json`.

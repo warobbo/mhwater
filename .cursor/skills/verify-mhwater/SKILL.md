@@ -17,7 +17,7 @@ What it serves today:
 
 Update this feature map in the same PR whenever a build changes pages or tools.
 
-There is no scheduled or weekly pass over this map.
+A weekly maintain pass runs on Mondays, as part of Freddie the Font2's routine. It edits only `.cursor/skills/verify-mhwater/`, opens at most one PR through the review loop, and stays quiet unless blocked.
 
 ## Launch
 
@@ -85,7 +85,7 @@ Proof goes in `.cursor/skills/verify-mhwater/evidence/`. Cleanup must leave that
 
 | File | What it proves |
 | --- | --- |
-| `run.log` | Commands and pass/fail lines |
+| `run.txt` | Commands and pass/fail lines. Named `.txt` because the repo gitignore ignores `*.log`. |
 | `doctor.json` | Whether the instance was worth driving |
 | `redirects.json` | Local and live status plus `Location` |
 | `water.json`, `gas.json`, `tanks.json`, `cassette.json` | INPUT, derivation, EXPECTED display, ACTUAL text, mismatches |
